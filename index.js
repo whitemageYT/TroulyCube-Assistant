@@ -36,4 +36,9 @@ client.on('messageReactionAdd', async (reaction, user) => {
   handleRoleAssign(reaction, user);
 });
 
+// Start Express server
+const PORT = process.env.PORT || 5500;
+app.listen(PORT, () => {
+    log.info(`Express server is running on port ${PORT}`);
+});
 client.login(process.env.DISCORD_TOKEN);
