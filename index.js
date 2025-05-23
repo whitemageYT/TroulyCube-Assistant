@@ -4,6 +4,8 @@ const logger = require('./utils/logger.js');
 const handleRules = require('./handlers/rules.js');
 const handleRoleAssign = require('./handlers/roleAssign.js');
 const updateServerStatus = require('./handlers/status.js');
+const express = require('express');
+const app = express();
 
 const client = new Client({
   intents: [
