@@ -1,0 +1,45 @@
+{
+  "token": "MTM3NTQxMjY1ODAyMjY0OTk4OA.GVKNBD.EmxEHfQQLBCNhql1vjbTnGCX3vNc8bID8evopU",
+  "prefix": "!",
+  "reglement": {
+    "rulesChannelId": "1375432309116768316",
+    "messageId": "1375462641023324283",
+    "validatedRoleIds": [
+      "1375241608026656888",
+      "1375242986719285329"
+    ],
+    "embed": {
+      "title": "Règlement du serveur",
+      "description": "Merci de lire et d'accepter le règlement pour accéder au serveur.\n\n1. Pas d'insultes\n2. Pas de spam\n3. Respectez les autres membres\n\nCliquez sur ✅ pour accepter.",
+      "color": "#00ff99"
+    }
+  },
+  "servers": [
+    {
+      "name": "TroulyCube",
+      "ip": "troulycube.net",
+      "port": 25565,
+      "channelId": "1372173957700259871",
+      "messageId": "1375460988639248455",
+      "updateInterval": 300000,
+      "display": {
+        "chart": {
+          "enabled": true,
+          "historyHours": 24,
+          "color": "#3498db"
+        },
+        "showNextUpdate": true
+      },
+      "embed": {
+        "colors": {
+          "online": "#00ff00",
+          "offline": "#ff0000"
+        },
+        "title": "Statut du serveur :",
+        "footer": {
+          "text": "Fait avec amour par WhiteMage"
+        }
+      }
+    }
+  ]
+}
