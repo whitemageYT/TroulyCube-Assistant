@@ -4,7 +4,7 @@ const logger = require('./utils/logger.js');
 const handleRules = require('./handlers/rules.js');
 const handleRoleAssign = require('./handlers/roleAssign.js');
 const updateServerStatus = require('./handlers/status.js');
-const { upsertGradesEmbed, handleGradesReaction } = require('./handlers/gradesAssign.js');
+const { sendGradesEmbedIfNeeded, handleGradesReaction } = require('./handlers/gradesAssign.js');
 const express = require('express');
 
 const app = express();
@@ -37,16 +37,19 @@ client.once('ready', async () => {
   // Gestion du règlement
   await handleRules(client);
 
-  // Statut Minecraft
+  // Grades
+  await upsertGradesEmbed(client);
+
+  // Statut Minecraft (pour chaque serveur)
   config.servers.forEach(server => {
-    updateServerStatus(client, server, config);
+    upsertServerStatusMessage(client, server, config);
     setInterval(() => {
-      updateServerStatus(client, server, config);
+      upsertServerStatusMessage(client, server, config);
     }, server.updateInterval || 60000);
   });
 
-  // Mise à jour ou création de l'embed des grades
-  await upsertGradesEmbed(client);
+  // Envoi automatique de l'embed des grades si besoin
+  await sendGradesEmbedIfNeeded(client);
 });
 
 // Attribution du rôle à la réaction (Règlement + Grades)

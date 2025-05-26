@@ -1,119 +1,38 @@
-const { EmbedBuilder, AttachmentBuilder } = require('discord.js');
-const { status } = require('minecraft-server-util');
-const fs = require('fs');
-const logger = require('../utils/logger.js');
-const { generatePlayerChart } = require('../utils/charts.js');
-const configPath = './config.json';
-const historyPath = './history.json';
+// handlers/status.js
+const { EmbedBuilder } = require('discord.js');
+const { readStorage, writeStorage } = require('../storage');
 
-function loadHistory() {
-  if (!fs.existsSync(historyPath)) return {};
-  return JSON.parse(fs.readFileSync(historyPath));
-}
+async function upsertServerStatusMessage(client, server, config) {
+  const channel = await client.channels.fetch(server.channelId);
+  if (!channel) return;
 
-function saveHistory(history) {
-  fs.writeFileSync(historyPath, JSON.stringify(history, null, 2));
-}
-
-async function checkServerStatus(server) {
-  try {
-    const result = await status(server.ip, server.port, { timeout: 5000 });
-    return {
-      online: true,
-      players: result.players.online,
-      maxPlayers: result.players.max,
-      version: result.version.name,
-      ping: result.roundTripLatency,
-      motd: result.motd.clean
-    };
-  } catch (error) {
-    return { online: false, error: error.message };
-  }
-}
-
-function getEmbed(server, status, chartBuffer = null) {
+  // Exemple d'embed de statut serveur
   const embed = new EmbedBuilder()
-    .setTitle(server.embed.title || `Statut du serveur ${server.name}`)
-    .setFooter({ text: server.embed.footer?.text || '' });
+    .setTitle(server.embed.title)
+    .setColor(server.embed.colors.online) // ou offline selon l'état
+    .setDescription("Statut du serveur ici...");
 
-  if (status.online) {
-    embed
-      .setColor(server.embed.colors.online || '#00ff00')
-      .setDescription(
-        `🟢 **En ligne**\n**Joueurs**: ${status.players}/${status.maxPlayers}\n**Version**: ${status.version}\n**Ping**: ${status.ping} ms\n**MOTD**: ${status.motd}`
-      );
-    if (chartBuffer) {
-      embed.setImage('attachment://chart.png');
+  // Utilise storage.json pour stocker l'ID par salon
+  const storage = readStorage();
+  if (!storage.statusMessages) storage.statusMessages = {};
+  let messageId = storage.statusMessages[server.channelId];
+
+  if (messageId) {
+    try {
+      const oldMessage = await channel.messages.fetch(messageId);
+      if (oldMessage) {
+        await oldMessage.edit({ embeds: [embed] });
+        return;
+      }
+    } catch {
+      // Le message n'existe plus, on continue
     }
-  } else {
-    embed
-      .setColor(server.embed.colors.offline || '#ff0000')
-      .setDescription(`🔴 **Hors ligne**\nErreur: ${status.error || "Impossible de joindre le serveur."}`);
   }
-  embed.setTimestamp();
-  return embed;
+
+  // Sinon, envoie un nouveau message
+  const message = await channel.send({ embeds: [embed] });
+  storage.statusMessages[server.channelId] = message.id;
+  writeStorage(storage);
 }
 
-module.exports = async function updateServerStatus(client, server, config, saveConfig = true) {
-  try {
-    logger.info("Tentative de récupération du salon :", server.channelId);
-    const channel = await client.channels.fetch(server.channelId);
-    if (!channel) {
-      logger.error(`[Status] Salon introuvable pour ${server.name} (${server.channelId})`);
-      return;
-    }
-
-    const history = loadHistory();
-    if (!history[server.name]) history[server.name] = [];
-    const now = Date.now();
-    const statusData = await checkServerStatus(server);
-
-    logger.info("Statut du serveur :", statusData);
-
-    if (statusData.online) {
-      history[server.name].push({ timestamp: now, count: statusData.players });
-      const cutoff = now - (server.display.chart.historyHours * 60 * 60 * 1000);
-      history[server.name] = history[server.name].filter(e => e.timestamp >= cutoff);
-      saveHistory(history);
-    }
-
-    let chartBuffer = null;
-    if (
-      server.display.chart.enabled &&
-      statusData.online &&
-      history[server.name] &&
-      history[server.name].length > 1
-    ) {
-      chartBuffer = await generatePlayerChart(history[server.name], server.display.chart.color);
-    }
-
-    const embed = getEmbed(server, statusData, chartBuffer);
-    let message;
-    if (server.messageId) {
-      message = await channel.messages.fetch(server.messageId).catch(() => null);
-      if (message) {
-        logger.info("Édition du message de statut existant...");
-        if (chartBuffer) {
-          await message.edit({ embeds: [embed], files: [new AttachmentBuilder(chartBuffer, { name: 'chart.png' })] });
-        } else {
-          await message.edit({ embeds: [embed], files: [] });
-        }
-      }
-    }
-    if (!message) {
-      logger.info("Envoi d'un nouveau message de statut...");
-      if (chartBuffer) {
-        message = await channel.send({ embeds: [embed], files: [new AttachmentBuilder(chartBuffer, { name: 'chart.png' })] });
-      } else {
-        message = await channel.send({ embeds: [embed] });
-      }
-      server.messageId = message.id;
-      if (saveConfig) {
-        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-      }
-    }
-    logger.success(`[Status] Statut du serveur ${server.name} mis à jour`);
-  } catch (err) {
-    logger.error(`Erreur lors de la mise à jour du statut du serveur ${server.name}: ${err}`);
-  }
-};
+module.exports = upsertServerStatusMessage;
