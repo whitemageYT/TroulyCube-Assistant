@@ -2,14 +2,14 @@
   "prefix": "!",
   "reglement": {
     "rulesChannelId": "1375432309116768316",
-    "messageId": "1375462641023324283",
+    "messageId": "1376639944872951900",
     "validatedRoleIds": [
       "1375241608026656888",
       "1375242986719285329"
     ],
     "embed": {
       "title": "Règlement du serveur",
-      "description": "Merci de lire et d'accepter le règlement pour accéder au serveur.\n\n1. Pas d'insultes\n2. Pas de spam\n3. Respectez les autres membres\n\nCliquez sur ✅ pour accepter.",
+      "description": "Merci de lire et d'accepter le règlement pour accéder au serveur. \n\n1. Soyez gentil, on est entre amis ! \n2. Respectez les autres membres \n3. Pas de grief (sauf accord du propriétaire ou en reposant le bloc après) \n4. Pas de vol de ressources rares/importantes (si c'est de la cobble/dirt bon voilà quoi). Si vous avez l'accord du propriétaire, alors c'est bon. \n5. Hésitez pas à demander de l'aide, on ne mord pas ! \n6. Attention à vos machines auto ! Si elles vous font lagguer elle font aussi lagguer quelqu'un d'autre. Merci d'y mettre des systèmes d'ON/OFF pour limiter les problèmes. \n7. Attention, le PVP est actif. N'en abusez pas. \n8. Attention à vos builds|propos|messages des gens stream sur le serveur. Vous pouvez quand même vous amuser et faire des connerie, mais mettez un panneau PAS DE STREAM ICI ❤️! \n\nCliquez sur ✅ pour accepter.",
       "color": "#00ff99"
     }
   },
@@ -17,9 +17,9 @@
     {
       "name": "TroulyCube",
       "ip": "troulycube.net",
-      "port": 25565,
+      "port": null,
       "channelId": "1372173957700259871",
-      "messageId": "1375460988639248455",
+      "messageId": "1376642483441762337",
       "updateInterval": 300000,
       "display": {
         "chart": {
@@ -43,14 +43,4 @@
   ],
   "grades": {
     "channelId": "1376573910077669500",
-    "roles": {
-      "🟥": "123456789012345678",
-      "🟩": "234567890123456789",
-      "🟦": "345678901234567890"
-    },
-    "embed": {
-      "title": "Choisissez votre grade !",
-      "color": "#3498db"
-    }
-  }
 }

@@ -5,6 +5,9 @@
 const { REST, Routes } = require('discord.js');
 const config = require('./config.json');
 
+// Mets ici l'ID de ton serveur Discord
+const GUILD_ID = '1372173318744047667';
+
 const commands = [
     {
         name: 'status',
@@ -15,12 +18,24 @@ const commands = [
                 description: 'The name of the server to check',
                 type: 3, // STRING
                 required: true,
-                choices: config.minecraft.servers.map(server => ({
+                choices: config.servers.map(server => ({
                     name: server.name,
                     value: server.name
                 }))
             }
         ],
+    },
+    {
+        name: 'ressencer',
+        description: 'Ajouter un membre comme habitant de ton village',
+        options: [
+            {
+                name: 'utilisateur',
+                type: 6, // USER
+                description: 'Le membre à ajouter comme habitant',
+                required: true
+            }
+        ]
     }
 ];
 
@@ -30,8 +45,9 @@ const rest = new REST({ version: '10' }).setToken(config.bot.token);
     try {
         console.log('Started refreshing application (/) commands.');
 
+        // Déploiement instantané sur ton serveur
         await rest.put(
-            Routes.applicationCommands(config.bot.clientId),
+            Routes.applicationGuildCommands(config.bot.clientId, GUILD_ID),
             { body: commands },
         );
 
@@ -39,4 +55,4 @@ const rest = new REST({ version: '10' }).setToken(config.bot.token);
     } catch (error) {
         console.error(error);
     }
-})(); 
+})();
