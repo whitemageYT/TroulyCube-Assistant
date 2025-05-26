@@ -21,6 +21,18 @@ const commands = [
                 }))
             }
         ],
+    },
+    {
+        name: 'ressencer',
+        description: 'Ajouter un membre comme habitant de ton village',
+        options: [
+            {
+                name: 'utilisateur',
+                type: 6, // USER
+                description: 'Le membre à ajouter comme habitant',
+                required: true
+            }
+        ]
     }
 ];
 
@@ -39,4 +51,4 @@ const rest = new REST({ version: '10' }).setToken(config.bot.token);
     } catch (error) {
         console.error(error);
     }
-})(); 
+})();
