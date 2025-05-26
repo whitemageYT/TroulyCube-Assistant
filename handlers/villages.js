@@ -2,7 +2,16 @@ const fs = require('fs');
 const config = require('../config.json');
 const configPath = './config.json';
 const logger = require('../utils/logger.js');
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, PermissionsBitField } = require('discord.js');
+const {
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  PermissionsBitField
+} = require('discord.js');
 
 async function setupVillageEmbed(client) {
   const villagesConfig = config.villages;
@@ -47,23 +56,37 @@ function handleVillageInteractions(client) {
     if (interaction.isButton() && interaction.customId === 'create_village') {
       const modal = new ModalBuilder()
         .setCustomId('village_modal')
-        .setTitle('Création de village');
-
-      const nameInput = new TextInputBuilder()
-        .setCustomId('village_name')
-        .setLabel('Nom du village')
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true);
-
-      const firstRow = new ActionRowBuilder().addComponents(nameInput);
-      modal.addComponents(firstRow);
-
-      await interaction.showModal(modal);
+        .setTitle('Création de village')
+        .addComponents(
+          new ActionRowBuilder().addComponents(
+            new TextInputBuilder()
+              .setCustomId('village_name')
+              .setLabel('Nom du village')
+              .setStyle(TextInputStyle.Short)
+              .setRequired(true)
+          ),
+          new ActionRowBuilder().addComponents(
+            new TextInputBuilder()
+              .setCustomId('village_color')
+              .setLabel('Couleur du village (hex, ex: #3498db)')
+              .setStyle(TextInputStyle.Short)
+              .setRequired(true)
+              .setPlaceholder('#3498db')
+          )
+        );
+      return interaction.showModal(modal);
     }
 
     // 2. Modale validée → création du village
     if (interaction.isModalSubmit() && interaction.customId === 'village_modal') {
       const villageName = interaction.fields.getTextInputValue('village_name').trim().substring(0, 50);
+      let color = interaction.fields.getTextInputValue('village_color').trim();
+
+      // Validation couleur hexadécimale
+      if (!/^#?([0-9A-Fa-f]{6})$/.test(color)) {
+        return interaction.reply({ content: "La couleur doit être au format hexadécimal, ex: #3498db", ephemeral: true });
+      }
+      if (!color.startsWith('#')) color = '#' + color;
 
       // Vérifie que le nom n'existe pas déjà
       if (interaction.guild.channels.cache.find(c => c.name.toLowerCase() === villageName.toLowerCase())) {
@@ -74,12 +97,14 @@ function handleVillageInteractions(client) {
         // Crée les rôles
         const maireRole = await interaction.guild.roles.create({
           name: `maire de ${villageName}`,
+          color: color,
           permissions: [],
           mentionable: true,
           reason: `Création du village ${villageName}`
         });
         const habitantRole = await interaction.guild.roles.create({
           name: `habitant de ${villageName}`,
+          color: color,
           permissions: [],
           mentionable: true,
           reason: `Création du village ${villageName}`
@@ -132,42 +157,31 @@ function handleVillageInteractions(client) {
         // Donne le rôle maire au créateur
         await interaction.member.roles.add(maireRole);
 
-        logger.success(`Village "${villageName}" créé par ${interaction.user.tag}`);
+        logger.success(`Village "${villageName}" créé par ${interaction.user.tag} avec couleur ${color}`);
         await interaction.reply({ content: `Ton village **${villageName}** a été créé avec succès !`, ephemeral: true });
       } catch (error) {
         logger.error(`Erreur lors de la création du village "${villageName}":`, error);
         await interaction.reply({ content: "Une erreur est survenue lors de la création du village.", ephemeral: true });
       }
     }
-  });
 
-  // Commande !ressencer
-  client.on('messageCreate', async message => {
-    if (!message.content.startsWith('!ressencer')) return;
-    
-    const args = message.content.split(' ').slice(1);
-    if (!args.length) return message.reply("Tu dois mentionner un joueur à recenser.");
-    
-    const target = message.mentions.members.first() || message.guild.members.cache.find(m => m.user.username === args[0]);
-    if (!target) return message.reply("Utilisateur introuvable.");
+    // 3. Slash command /ressencer
+    if (interaction.isChatInputCommand && interaction.commandName === 'ressencer') {
+      const target = interaction.options.getMember('utilisateur');
+      if (!target) return interaction.reply({ content: "Utilisateur introuvable.", ephemeral: true });
 
-    // Trouver le rôle "maire de {village}" du membre
-    const maireRole = message.member.roles.cache.find(r => r.name.startsWith('maire de '));
-    if (!maireRole) return message.reply("Tu n'es maire d'aucun village.");
+      // Vérifie que l'utilisateur est bien maire d'un village
+      const maireRole = interaction.member.roles.cache.find(r => r.name.startsWith('maire de '));
+      if (!maireRole) return interaction.reply({ content: "Tu n'es maire d'aucun village.", ephemeral: true });
 
-    // Trouver le rôle habitant correspondant
-    const habitantRoleName = maireRole.name.replace('maire de ', 'habitant de ');
-    const habitantRole = message.guild.roles.cache.find(r => r.name === habitantRoleName);
-    if (!habitantRole) return message.reply("Rôle habitant introuvable.");
+      // Trouve le rôle habitant correspondant
+      const habitantRoleName = maireRole.name.replace('maire de ', 'habitant de ');
+      const habitantRole = interaction.guild.roles.cache.find(r => r.name === habitantRoleName);
+      if (!habitantRole) return interaction.reply({ content: "Rôle habitant introuvable.", ephemeral: true });
 
-    // Ajouter le rôle
-    try {
+      // Ajoute le rôle
       await target.roles.add(habitantRole);
-      message.reply(`${target} est maintenant habitant de ton village !`);
-      logger.info(`${target.user.tag} a été ajouté au village "${habitantRoleName.replace('habitant de ', '')}" par ${message.author.tag}`);
-    } catch (error) {
-      logger.error(`Erreur lors de l'ajout de ${target.user.tag} au village:`, error);
-      message.reply("Une erreur est survenue lors de l'ajout de l'habitant.");
+      await interaction.reply({ content: `${target} est maintenant habitant de ton village !`, ephemeral: true });
     }
   });
 }
