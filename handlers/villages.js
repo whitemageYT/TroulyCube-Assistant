@@ -35,14 +35,18 @@ async function setupVillageEmbed(client) {
       .setStyle(ButtonStyle.Primary)
   );
 
+  // Correction : ne renvoie le message QUE si nécessaire
   let message = null;
   if (villagesConfig.messageId) {
+    // On tente de fetch le message existant
     message = await channel.messages.fetch(villagesConfig.messageId).catch(() => null);
   }
 
   if (message && typeof message.edit === 'function') {
+    // Message existant : on l'édite
     await message.edit({ embeds: [embed], components: [row] });
   } else {
+    // Pas de message existant : on envoie et on sauvegarde l'ID
     message = await channel.send({ embeds: [embed], components: [row] });
     config.villages.messageId = message.id;
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -52,7 +56,7 @@ async function setupVillageEmbed(client) {
 
 function handleVillageInteractions(client) {
   client.on('interactionCreate', async interaction => {
-    // 1. Bouton → ouvrir la modale
+    // Bouton → ouvrir la modale
     if (interaction.isButton() && interaction.customId === 'create_village') {
       const modal = new ModalBuilder()
         .setCustomId('village_modal')
@@ -77,7 +81,7 @@ function handleVillageInteractions(client) {
       return interaction.showModal(modal);
     }
 
-    // 2. Modale validée → création du village
+    // Modale validée → création du village
     if (interaction.isModalSubmit() && interaction.customId === 'village_modal') {
       const villageName = interaction.fields.getTextInputValue('village_name').trim().substring(0, 50);
       let color = interaction.fields.getTextInputValue('village_color').trim();
@@ -165,7 +169,7 @@ function handleVillageInteractions(client) {
       }
     }
 
-    // 3. Slash command /ressencer
+    // Slash command /ressencer
     if (interaction.isChatInputCommand && interaction.commandName === 'ressencer') {
       const target = interaction.options.getMember('utilisateur');
       if (!target) return interaction.reply({ content: "Utilisateur introuvable.", ephemeral: true });
