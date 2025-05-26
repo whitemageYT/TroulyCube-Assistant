@@ -8,13 +8,11 @@ async function upsertServerStatusMessage(client, server, config) {
   const channel = await client.channels.fetch(server.channelId);
   if (!channel) return;
 
-  // Valeurs par défaut
   let online = false;
   let playersOnline = 0;
   let maxPlayers = 0;
   let motd = '';
 
-  // Ping réel du serveur Minecraft
   try {
     const response = await status(server.ip, server.port, { timeout: 5000 });
     online = true;
@@ -43,24 +41,25 @@ async function upsertServerStatusMessage(client, server, config) {
     .setTimestamp();
 
   let message = null;
-if (server.messageId) {
-  message = await channel.messages.fetch(server.messageId).catch(() => null);
+  if (server.messageId) {
+    message = await channel.messages.fetch(server.messageId).catch(() => null);
+  }
+
+  if (message && typeof message.edit === 'function') {
+    await message.edit({ embeds: [embed] });
+  } else {
+    message = await channel.send({ embeds: [embed] });
+    const servers = config.servers.map(srv => {
+      if (srv.channelId === server.channelId) {
+        return { ...srv, messageId: message.id };
+      }
+      return srv;
+    });
+    config.servers = servers;
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    console.log("Message status envoyé et ID sauvegardé dans config.json.");
+  }
 }
 
-if (message && typeof message.edit === 'function') {
-  // Modifie le message existant
-  await message.edit({ embeds: [embed] });
-} else {
-  // Envoie un nouveau message et sauvegarde l'ID
-  message = await channel.send({ embeds: [embed] });
-  const servers = config.servers.map(srv => {
-    if (srv.channelId === server.channelId) {
-      return { ...srv, messageId: message.id };
-    }
-    return srv;
-  });
-  config.servers = servers;
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-}
-
+// N'OUBLIE PAS CETTE LIGNE :
 module.exports = upsertServerStatusMessage;
