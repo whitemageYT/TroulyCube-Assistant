@@ -3,13 +3,8 @@ const config = require('./config.json');
 const logger = require('./utils/logger.js');
 const handleRules = require('./handlers/rules.js');
 const handleRoleAssign = require('./handlers/roleAssign.js');
-const upsertServerStatusMessage = require('./handlers/status.js');
-const { upsertGradesEmbed, handleGradesReaction } = require('./handlers/gradesAssign.js');
-const express = require('express');
-const { setupVillageEmbed, handleVillageInteractions } = require('./handlers/villages.js');
+const updateServerStatus = require('./handlers/status.js');
 
-
-const app = express();
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -39,14 +34,7 @@ client.once('ready', async () => {
   // Gestion du règlement
   await handleRules(client);
 
-  // Grades (envoi ou modif unique)
-  await upsertGradesEmbed(client);
-
-  // Gestion des villages
-  await setupVillageEmbed(client);
-  handleVillageInteractions(client);
-
-  // Statut Minecraft (pour chaque serveur)
+  // Statut Minecraft
   config.servers.forEach(server => {
     upsertServerStatusMessage(client, server, config);
     setInterval(() => {

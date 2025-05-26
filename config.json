@@ -40,28 +40,5 @@
         }
       }
     }
-  ],
-  "grades": {
-    "channelId": "1376573910077669500",
-    "messageId": "1376639957485224088",
-    "roles": {
-      "⛏️": "1375242115696693338",
-      "⚔️": "1375241968677818488",
-      "🛡️": "1375242615347216536",
-      "🏹": "1375242416759636099"
-    },
-    "embed": {
-      "title": "Choisissez votre/vos grades !",
-      "color": "#3498db"
-    }
-  },
-  "villages": {
-  "channelId": "1376675227060273212",
-  "messageId": null,
-  "embed": {
-    "title": "Créer votre village !",
-    "description": "Cliquez sur le bouton ci-dessous pour créer votre propre village.\n\nUn salon texte, un salon vocal, un rôle Maire et un rôle Habitant seront créés automatiquement.",
-    "color": "#3498db"
-  }
-}
+  ]
 }
