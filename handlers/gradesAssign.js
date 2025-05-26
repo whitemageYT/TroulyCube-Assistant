@@ -8,7 +8,10 @@ const GRADES_MESSAGE_ID_FILE = './grades_message_id.txt';
 async function upsertGradesEmbed(client) {
   const gradesConfig = config.grades;
   const channel = await client.channels.fetch(gradesConfig.channelId);
-  if (!channel) return console.error("Salon Grades introuvable.");
+  if (!channel) {
+    console.error("Salon Grades introuvable.");
+    return;
+  }
 
   const description = Object.entries(gradesConfig.roles)
     .map(([emoji, roleId]) => `${emoji} : <@&${roleId}>`)
@@ -19,7 +22,6 @@ async function upsertGradesEmbed(client) {
     .setDescription(description)
     .setColor(gradesConfig.embed.color || 0x3498db);
 
-  // Vérifie si le message existe déjà
   let gradesMessageId = null;
   if (fs.existsSync(GRADES_MESSAGE_ID_FILE)) {
     gradesMessageId = fs.readFileSync(GRADES_MESSAGE_ID_FILE, 'utf8');
@@ -74,10 +76,15 @@ async function handleGradesReaction(reaction, user, add = true) {
 
   const member = await reaction.message.guild.members.fetch(user.id);
   if (!member) return;
-  if (add) {
-    if (!member.roles.cache.has(roleId)) await member.roles.add(roleId).catch(() => {});
-  } else {
-    if (member.roles.cache.has(roleId)) await member.roles.remove(roleId).catch(() => {});
+
+  try {
+    if (add) {
+      if (!member.roles.cache.has(roleId)) await member.roles.add(roleId);
+    } else {
+      if (member.roles.cache.has(roleId)) await member.roles.remove(roleId);
+    }
+  } catch (error) {
+    console.error(`Erreur lors de la modification des rôles pour ${member.user.tag}:`, error);
   }
 }
 
