@@ -7,7 +7,6 @@ const upsertServerStatusMessage = require('./handlers/status.js');
 const { upsertGradesEmbed, handleGradesReaction } = require('./handlers/gradesAssign.js');
 const express = require('express');
 const { setupVillageEmbed, handleVillageInteractions } = require('./handlers/villages.js');
-const updateServerStatus = require('./handlers/status.js');
 
 
 const app = express();
