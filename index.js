@@ -18,6 +18,7 @@ const client = new Client({
   partials: [Partials.Message, Partials.Channel, Partials.Reaction]
 });
 
+
 // === Keep Alive route ===
 app.get('/', (req, res) => {
   res.send('Le bot est en ligne');
