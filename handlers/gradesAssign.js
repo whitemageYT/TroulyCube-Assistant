@@ -1,11 +1,9 @@
-// handlers/gradesAssign.js
-const { EmbedBuilder } = require('discord.js');
+const fs = require('fs');
 const config = require('../config.json');
-const { readStorage, writeStorage } = require('../storage');
+const configPath = './config.json';
+const { EmbedBuilder } = require('discord.js');
 
-const GRADES_MESSAGE_ID_FILE = './grades_message_id.txt';
-
-async function sendGradesEmbedIfNeeded(client) {
+async function upsertGradesEmbed(client) {
   const gradesConfig = config.grades;
   const channel = await client.channels.fetch(gradesConfig.channelId);
   if (!channel) {
@@ -13,6 +11,7 @@ async function sendGradesEmbedIfNeeded(client) {
     return;
   }
 
+  // Prépare l'embed
   const description = Object.entries(gradesConfig.roles)
     .map(([emoji, roleId]) => `${emoji} : <@&${roleId}>`)
     .join('\n');
@@ -22,18 +21,39 @@ async function sendGradesEmbedIfNeeded(client) {
     .setDescription(description)
     .setColor(gradesConfig.embed.color || 0x3498db);
 
-  const message = await channel.send({ embeds: [embed] });
-  for (const emoji of Object.keys(gradesConfig.roles)) {
-  try {
-    await message.react(emoji);
-  } catch (e) {
-    console.error(`Impossible d’ajouter la réaction pour l’emoji ${emoji}:`, e);
+  let message;
+  if (gradesConfig.messageId) {
+    message = await channel.messages.fetch(gradesConfig.messageId).catch(() => null);
   }
-}
 
-  // Sauvegarde le nouvel ID dans storage.json
-  storage.gradesMessageId = message.id;
-  writeStorage(storage);
+  if (message) {
+    await message.edit({ embeds: [embed] });
+    // Ajoute les réactions manquantes
+    const existingReactions = message.reactions.cache.map(r => r.emoji.name);
+    for (const emoji of Object.keys(gradesConfig.roles)) {
+      if (!existingReactions.includes(emoji)) {
+        try {
+          await message.react(emoji);
+        } catch (e) {
+          console.error(`Impossible d’ajouter la réaction pour l’emoji ${emoji}:`, e);
+        }
+      }
+    }
+  } else {
+    // Envoie un nouveau message
+    message = await channel.send({ embeds: [embed] });
+    for (const emoji of Object.keys(gradesConfig.roles)) {
+      try {
+        await message.react(emoji);
+      } catch (e) {
+        console.error(`Impossible d’ajouter la réaction pour l’emoji ${emoji}:`, e);
+      }
+    }
+    // Sauvegarde l'ID dans config.json
+    config.grades.messageId = message.id;
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    console.log("Message grades envoyé et ID sauvegardé dans config.json.");
+  }
 }
 
 async function handleGradesReaction(reaction, user, add = true) {
@@ -41,10 +61,7 @@ async function handleGradesReaction(reaction, user, add = true) {
   const gradesConfig = config.grades;
 
   if (reaction.message.channel.id !== gradesConfig.channelId) return;
-
-  const storage = readStorage();
-  const gradesMessageId = storage.gradesMessageId;
-  if (!gradesMessageId || reaction.message.id !== gradesMessageId) return;
+  if (reaction.message.id !== gradesConfig.messageId) return;
 
   const roleId = gradesConfig.roles[reaction.emoji.name];
   if (!roleId) return;
@@ -67,4 +84,3 @@ module.exports = {
   upsertGradesEmbed,
   handleGradesReaction
 };
-
