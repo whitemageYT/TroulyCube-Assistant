@@ -14,24 +14,23 @@ module.exports = async (client) => {
     return;
   }
 
-  let message;
+  // Prépare l'embed à envoyer ou modifier
+  const embed = new EmbedBuilder()
+    .setTitle(reglementConf.embed.title)
+    .setDescription(reglementConf.embed.description)
+    .setColor(parseInt(reglementConf.embed.color.replace('#', ''), 16));
+
+  let message = null;
   if (reglementConf.messageId) {
+    // On tente de fetch le message existant, sinon null
     message = await channel.messages.fetch(reglementConf.messageId).catch(() => null);
   }
 
-  if (message) {
-    // Modifie l'embed si besoin (optionnel)
-    const embed = new EmbedBuilder()
-      .setTitle(reglementConf.embed.title)
-      .setDescription(reglementConf.embed.description)
-      .setColor(parseInt(reglementConf.embed.color.replace('#', ''), 16));
+  if (message && typeof message.edit === 'function') {
+    // Modifie l'embed si le message existe et est bien un Message Discord.js
     await message.edit({ embeds: [embed] });
   } else {
-    const embed = new EmbedBuilder()
-      .setTitle(reglementConf.embed.title)
-      .setDescription(reglementConf.embed.description)
-      .setColor(parseInt(reglementConf.embed.color.replace('#', ''), 16));
-
+    // Envoie un nouveau message
     message = await channel.send({ embeds: [embed] });
     await message.react('✅');
     reglementConf.messageId = message.id;
