@@ -26,7 +26,7 @@ const commands = [
         ],
     },
     {
-        name: 'ressencer',
+        name: 'recensée',
         description: 'Ajouter un membre comme habitant de ton village',
         options: [
             {
