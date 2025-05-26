@@ -36,7 +36,20 @@ const commands = [
                 required: true
             }
         ]
-    }
+    },
+    {
+        name: 'dé-ressencer',
+        description: 'Retirer un membre de ton village',
+        options: [
+            {
+                name: 'utilisateur',
+                type: 6, // USER
+                description: 'Le membre à retirer comme habitant',
+                required: true
+            }
+    ]
+}
+
 ];
 
 const rest = new REST({ version: '10' }).setToken(config.bot.token);

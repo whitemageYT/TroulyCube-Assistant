@@ -187,6 +187,28 @@ function handleVillageInteractions(client) {
       await target.roles.add(habitantRole);
       await interaction.reply({ content: `${target} est maintenant habitant de ton village !`, ephemeral: true });
     }
+
+    // Slash command /deressencer
+    if (interaction.isChatInputCommand() && interaction.commandName === 'deressencer') {
+      const target = interaction.options.getMember('utilisateur');
+      if (!target) return interaction.reply({ content: "Utilisateur introuvable.", ephemeral: true });
+
+      // Vérifie que l'utilisateur est bien maire d'un village
+      const maireRole = interaction.member.roles.cache.find(r => r.name.startsWith('maire de '));
+      if (!maireRole) return interaction.reply({ content: "Tu n'es maire d'aucun village.", ephemeral: true });
+
+      // Trouve le rôle habitant correspondant
+      const habitantRoleName = maireRole.name.replace('maire de ', 'habitant de ');
+      const habitantRole = interaction.guild.roles.cache.find(r => r.name === habitantRoleName);
+      if (!habitantRole) return interaction.reply({ content: "Rôle habitant introuvable.", ephemeral: true });
+
+      // Retire le rôle
+      if (!target.roles.cache.has(habitantRole.id)) {
+        return interaction.reply({ content: `${target} n'est pas habitant de ton village.`, ephemeral: true });
+      }
+      await target.roles.remove(habitantRole);
+      await interaction.reply({ content: `${target} a été retiré des habitants de ton village.`, ephemeral: true });
+    }
   });
 }
 
