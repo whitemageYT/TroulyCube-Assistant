@@ -66,4 +66,4 @@ client.on('messageReactionRemove', async (reaction, user) => {
   handleGradesReaction(reaction, user, false);
 });
 
-client.login(process.env."DISCORD_TOKEN");
+client.login(process.env.DISCORD_TOKEN);
