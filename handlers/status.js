@@ -1,6 +1,7 @@
-// handlers/status.js
+const fs = require('fs');
+const config = require('../config.json');
+const configPath = './config.json';
 const { EmbedBuilder } = require('discord.js');
-const { readStorage, writeStorage } = require('../storage');
 
 async function upsertServerStatusMessage(client, server, config) {
   const channel = await client.channels.fetch(server.channelId);
@@ -12,27 +13,26 @@ async function upsertServerStatusMessage(client, server, config) {
     .setColor(server.embed.colors.online) // ou offline selon l'état
     .setDescription("Statut du serveur ici...");
 
-  // Utilise storage.json pour stocker l'ID par salon
-  const storage = readStorage();
-  if (!storage.statusMessages) storage.statusMessages = {};
-  let messageId = storage.statusMessages[server.channelId];
-
-  if (messageId) {
-    try {
-      const oldMessage = await channel.messages.fetch(messageId);
-      if (oldMessage) {
-        await oldMessage.edit({ embeds: [embed] });
-        return;
-      }
-    } catch {
-      // Le message n'existe plus, on continue
-    }
+  let message;
+  if (server.messageId) {
+    message = await channel.messages.fetch(server.messageId).catch(() => null);
   }
 
-  // Sinon, envoie un nouveau message
-  const message = await channel.send({ embeds: [embed] });
-  storage.statusMessages[server.channelId] = message.id;
-  writeStorage(storage);
+  if (message) {
+    await message.edit({ embeds: [embed] });
+  } else {
+    message = await channel.send({ embeds: [embed] });
+    // Sauvegarde l'ID dans config.json
+    const servers = config.servers.map(srv => {
+      if (srv.channelId === server.channelId) {
+        return { ...srv, messageId: message.id };
+      }
+      return srv;
+    });
+    config.servers = servers;
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    console.log("Message status envoyé et ID sauvegardé dans config.json.");
+  }
 }
 
 module.exports = upsertServerStatusMessage;
