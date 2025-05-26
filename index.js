@@ -3,8 +3,8 @@ const config = require('./config.json');
 const logger = require('./utils/logger.js');
 const handleRules = require('./handlers/rules.js');
 const handleRoleAssign = require('./handlers/roleAssign.js');
-const updateServerStatus = require('./handlers/status.js');
-const { sendGradesEmbedIfNeeded, handleGradesReaction } = require('./handlers/gradesAssign.js');
+const upsertServerStatusMessage = require('./handlers/status.js');
+const { upsertGradesEmbed, handleGradesReaction } = require('./handlers/gradesAssign.js');
 const express = require('express');
 
 const app = express();
@@ -37,7 +37,7 @@ client.once('ready', async () => {
   // Gestion du règlement
   await handleRules(client);
 
-  // Grades
+  // Grades (envoi ou modif unique)
   await upsertGradesEmbed(client);
 
   // Statut Minecraft (pour chaque serveur)
@@ -45,21 +45,18 @@ client.once('ready', async () => {
     upsertServerStatusMessage(client, server, config);
     setInterval(() => {
       upsertServerStatusMessage(client, server, config);
-    }, server.updateInterval || 3000);
+    }, server.updateInterval || 300000);
   });
-
-  // Envoi automatique de l'embed des grades si besoin
-  await sendGradesEmbedIfNeeded(client);
 });
 
 // Attribution du rôle à la réaction (Règlement + Grades)
 client.on('messageReactionAdd', async (reaction, user) => {
   handleRoleAssign(reaction, user);
-  handleGradesReaction(reaction, user, true); // ajout du rôle
+  handleGradesReaction(reaction, user, true);
 });
 
 client.on('messageReactionRemove', async (reaction, user) => {
-  handleGradesReaction(reaction, user, false); // retrait du rôle
+  handleGradesReaction(reaction, user, false);
 });
 
 client.login(process.env.DISCORD_TOKEN);
