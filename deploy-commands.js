@@ -18,7 +18,7 @@ const commands = [
                 description: 'The name of the server to check',
                 type: 3, // STRING
                 required: true,
-                choices: config.minecraft.servers.map(server => ({
+                choices: config.servers.map(server => ({
                     name: server.name,
                     value: server.name
                 }))
