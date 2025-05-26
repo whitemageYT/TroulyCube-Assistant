@@ -8,20 +8,20 @@ async function upsertServerStatusMessage(client, server, config) {
   const channel = await client.channels.fetch(server.channelId);
   if (!channel) return;
 
+  // Valeurs par défaut
   let online = false;
   let playersOnline = 0;
   let maxPlayers = 0;
   let motd = '';
 
+  // Ping réel du serveur Minecraft
   try {
-    // Ping le serveur Minecraft
     const response = await status(server.ip, server.port, { timeout: 5000 });
     online = true;
     playersOnline = response.players.online;
     maxPlayers = response.players.max;
     motd = response.motd.clean;
   } catch (err) {
-    // Si erreur, le serveur est considéré comme hors ligne
     online = false;
   }
 
@@ -42,16 +42,17 @@ async function upsertServerStatusMessage(client, server, config) {
     .setFooter({ text: server.embed.footer.text })
     .setTimestamp();
 
-  let message;
+  let message = null;
   if (server.messageId) {
     message = await channel.messages.fetch(server.messageId).catch(() => null);
   }
 
   if (message) {
+    // Modifie le message existant
     await message.edit({ embeds: [embed] });
   } else {
+    // Envoie un nouveau message et sauvegarde l'ID
     message = await channel.send({ embeds: [embed] });
-    // Sauvegarde l'ID dans config.json
     const servers = config.servers.map(srv => {
       if (srv.channelId === server.channelId) {
         return { ...srv, messageId: message.id };
