@@ -5,7 +5,7 @@
 const { REST, Routes } = require('discord.js');
 const config = require('./config.json');
 
-// Remplace ceci par l'ID de ton serveur Discord
+// Mets ici l'ID de ton serveur Discord
 const GUILD_ID = '1372173318744047667';
 
 const commands = [
@@ -45,7 +45,7 @@ const rest = new REST({ version: '10' }).setToken(config.bot.token);
     try {
         console.log('Started refreshing application (/) commands.');
 
-        // Déploiement instantané sur le serveur spécifié
+        // Déploiement instantané sur ton serveur
         await rest.put(
             Routes.applicationGuildCommands(config.bot.clientId, GUILD_ID),
             { body: commands },
