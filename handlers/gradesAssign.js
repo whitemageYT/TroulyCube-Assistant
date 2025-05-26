@@ -24,8 +24,12 @@ async function sendGradesEmbedIfNeeded(client) {
 
   const message = await channel.send({ embeds: [embed] });
   for (const emoji of Object.keys(gradesConfig.roles)) {
+  try {
     await message.react(emoji);
+  } catch (e) {
+    console.error(`Impossible d’ajouter la réaction pour l’emoji ${emoji}:`, e);
   }
+}
 
   // Sauvegarde le nouvel ID dans storage.json
   storage.gradesMessageId = message.id;
