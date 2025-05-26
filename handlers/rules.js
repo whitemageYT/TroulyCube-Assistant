@@ -19,7 +19,14 @@ module.exports = async (client) => {
     message = await channel.messages.fetch(reglementConf.messageId).catch(() => null);
   }
 
-  if (!message) {
+  if (message) {
+    // Modifie l'embed si besoin (optionnel)
+    const embed = new EmbedBuilder()
+      .setTitle(reglementConf.embed.title)
+      .setDescription(reglementConf.embed.description)
+      .setColor(parseInt(reglementConf.embed.color.replace('#', ''), 16));
+    await message.edit({ embeds: [embed] });
+  } else {
     const embed = new EmbedBuilder()
       .setTitle(reglementConf.embed.title)
       .setDescription(reglementConf.embed.description)
