@@ -45,7 +45,7 @@ client.once('ready', async () => {
     upsertServerStatusMessage(client, server, config);
     setInterval(() => {
       upsertServerStatusMessage(client, server, config);
-    }, server.updateInterval || 60000);
+    }, server.updateInterval || 3000);
   });
 
   // Envoi automatique de l'embed des grades si besoin
