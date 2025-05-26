@@ -2,7 +2,7 @@
   "prefix": "!",
   "reglement": {
     "rulesChannelId": "1375432309116768316",
-    "messageId": 1376624418733686814,
+    "messageId": null,
     "validatedRoleIds": [
       "1375241608026656888",
       "1375242986719285329"
@@ -19,7 +19,7 @@
       "ip": "troulycube.net",
       "port": null,
       "channelId": "1372173957700259871",
-      "messageId": 1376629463986606241,
+      "messageId": null,
       "updateInterval": 300000,
       "display": {
         "chart": {
@@ -43,7 +43,7 @@
   ],
   "grades": {
     "channelId": "1376573910077669500",
-    "messageId": 1376625688748101874,
+    "messageId": null,
     "roles": {
       "⛏️": "1375242115696693338",
       "⚔️": "1375241968677818488",
