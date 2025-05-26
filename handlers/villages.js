@@ -170,7 +170,7 @@ function handleVillageInteractions(client) {
     }
 
     // Slash command /ressencer
-    if (interaction.isChatInputCommand && interaction.commandName === 'ressencer') {
+    if (interaction.isChatInputCommand() && interaction.commandName === 'ressencer') {
       const target = interaction.options.getMember('utilisateur');
       if (!target) return interaction.reply({ content: "Utilisateur introuvable.", ephemeral: true });
 
