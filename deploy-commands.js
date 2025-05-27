@@ -6,7 +6,7 @@ const { REST, Routes } = require('discord.js');
 const config = require('./config.json');
 
 // Mets ici l'ID de ton serveur Discord
-const GUILD_ID = '1372173318744047667';
+const GUILD_ID = 'DISCORD_ID';
 
 const commands = [
     {
