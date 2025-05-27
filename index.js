@@ -7,6 +7,7 @@ const upsertServerStatusMessage = require('./handlers/status.js');
 const { upsertGradesEmbed, handleGradesReaction } = require('./handlers/gradesAssign.js');
 const express = require('express');
 const { setupVillageEmbed, handleVillageInteractions } = require('./handlers/villages.js');
+const handleSupprimer = require('./handlers/supprimer.js');
 
 
 const app = express();
@@ -46,6 +47,8 @@ client.once('ready', async () => {
   await setupVillageEmbed(client);
   handleVillageInteractions(client);
 
+  handleSupprimer(client);
+
   // Statut Minecraft (pour chaque serveur)
   // Statut Minecraft
   config.servers.forEach(server => {
@@ -66,4 +69,4 @@ client.on('messageReactionRemove', async (reaction, user) => {
   handleGradesReaction(reaction, user, false);
 });
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(process.env.MTM3NTQxMjY1ODAyMjY0OTk4OA.G9xDTF.TTPTHe37kyzZVy8mSN5dpsL20bnVD1KyOFnYFI);

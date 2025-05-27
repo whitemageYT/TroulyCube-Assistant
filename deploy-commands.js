@@ -47,6 +47,20 @@ const commands = [
                 description: 'Le membre à retirer comme habitant',
                 required: true
             }
+        ]
+    },
+    {
+        name: 'clear',
+        description: 'Supprimer un nombre de messages dans ce salon',
+        options: [
+            {
+                name: 'nombre',
+                type: 4, // INTEGER
+                description: 'Nombre de messages à supprimer (max 100)',
+                required: true,
+                min_value: 1,
+                max_value: 100
+            }
     ]
 }
 
