@@ -60,12 +60,16 @@
     }
   },
   "villages": {
-  "channelId": "1376675227060273212",
-  "messageId": "1376691407716352090",
-  "embed": {
-    "title": "Créer votre village !",
-    "description": "Cliquez sur le bouton ci-dessous pour créer votre propre village.\n\nUn salon texte, un salon vocal, un rôle Maire et un rôle Habitant seront créés automatiquement.",
-    "color": "#3498db"
+    "channelId": "1376675227060273212",
+    "messageId": "1376691407716352090",
+    "embed": {
+      "title": "Créer votre village !",
+      "description": "Cliquez sur le bouton ci-dessous pour créer votre propre village.\n\n Une fois votre village créé, faites la commande /recensée {nom d'utilisateur} pour ajouter une personne à ce dernier.\n\n Un salon texte, un salon vocal, un rôle Maire et un rôle Habitant seront créés automatiquement.",
+      "color": "#3498db"
+    },
+    "embedMessageId": "",  
+    "list": {
+      
+    }
   }
-}
 }

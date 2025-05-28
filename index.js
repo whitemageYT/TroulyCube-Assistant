@@ -8,7 +8,7 @@ const { upsertGradesEmbed, handleGradesReaction } = require('./handlers/gradesAs
 const express = require('express');
 const { setupVillageEmbed, handleVillageInteractions } = require('./handlers/villages.js');
 const handleSupprimer = require('./handlers/supprimer.js');
-
+const updateEmbeds = require('./handlers/updateEmbeds');
 
 const app = express();
 const client = new Client({
@@ -46,6 +46,8 @@ client.once('ready', async () => {
   // Gestion des villages
   await setupVillageEmbed(client);
   handleVillageInteractions(client);
+
+  updateEmbeds(client);
 
   handleSupprimer(client);
 
