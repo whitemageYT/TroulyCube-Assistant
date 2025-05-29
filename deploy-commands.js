@@ -1,7 +1,3 @@
-/**
- * Minecraft Server Status Bot - Command Deployment
- */
-
 const { REST, Routes } = require('discord.js');
 const config = require('./config.json');
 
@@ -76,7 +72,7 @@ const commands = [
 
 ];
 
-const rest = new REST({ version: '10' }).setToken(config.bot.token);
+const rest = new REST({ version: '10' }).setToken(token);
 
 (async () => {
     try {
