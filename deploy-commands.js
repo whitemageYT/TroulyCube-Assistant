@@ -56,6 +56,10 @@ const commands = [
     description: 'Envoie le fichier config.json à jour en DM (admin seulement)'
     },
     {
+        name: 'supprimer_village',
+        description: 'Supprime ton village (maire uniquement)',
+    },
+    {
         name: 'clear',
         description: 'Supprimer un nombre de messages dans ce salon',
         options: [

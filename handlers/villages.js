@@ -158,6 +158,58 @@ function handleVillageInteractions(client) {
         return interaction.reply({ content: "Un village porte déjà ce nom.", ephemeral: true });
       }
 
+      // Handler pour /supprimer_village
+      if (interaction.isChatInputCommand() && interaction.commandName === 'supprimer_village') {
+        const member = interaction.member;
+        const guild = interaction.guild;
+
+        // Trouver le village dont l'utilisateur est maire
+        const villages = config.villages.list || {};
+        const maireVillage = Object.entries(villages).find(([name, data]) => {
+          const maireRole = guild.roles.cache.find(r => r.name === `maire de ${name}`);
+          return maireRole && member.roles.cache.has(maireRole.id);
+        });
+
+        if (!maireVillage) {
+          return interaction.reply({ content: "Tu n'es maire d'aucun village, ou tu n'as pas les permissions.", ephemeral: true });
+        }
+
+        const [villageName] = maireVillage;
+
+        // Confirmation (optionnel)
+        await interaction.reply({ content: `Suppression du village **${villageName}** en cours...`, ephemeral: true });
+
+        try {
+          // Supprimer la catégorie et les salons
+          const category = guild.channels.cache.find(c => c.name === villageName && c.type === 4); // 4 = GUILD_CATEGORY
+          if (category) {
+            // Supprime tous les salons enfants
+            for (const channel of guild.channels.cache.filter(c => c.parentId === category.id).values()) {
+              await channel.delete("Suppression du village");
+            }
+            await category.delete("Suppression du village");
+          }
+
+          // Supprimer les rôles
+          const maireRole = guild.roles.cache.find(r => r.name === `maire de ${villageName}`);
+          const habitantRole = guild.roles.cache.find(r => r.name === `habitant de ${villageName}`);
+          if (maireRole) await maireRole.delete("Suppression du village");
+          if (habitantRole) await habitantRole.delete("Suppression du village");
+
+          // Supprimer du config.json
+          delete config.villages.list[villageName];
+          fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+          // Mettre à jour l'embed
+          await updateVillagesEmbed(interaction.client);
+
+          await interaction.editReply({ content: `Le village **${villageName}** a bien été supprimé !` });
+        } catch (e) {
+          logger.error("Erreur lors de la suppression du village :", e);
+          await interaction.editReply({ content: "Erreur lors de la suppression du village." });
+        }
+      }
+
       try {
         // Crée les rôles
         const maireRole = await interaction.guild.roles.create({
