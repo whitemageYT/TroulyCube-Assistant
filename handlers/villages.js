@@ -231,7 +231,6 @@ function handleVillageInteractions(client) {
         const uploadConfigToDrive = require('../utils/driveUploader.js');
         uploadConfigToDrive().catch(console.error);
 
-
         logger.success(`Village "${villageName}" créé par ${interaction.user.tag} avec couleur ${color}`);
         await interaction.reply({ content: `Ton village **${villageName}** a été créé avec succès !`, ephemeral: true });
 

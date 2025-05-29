@@ -66,7 +66,6 @@ const commands = [
                 max_value: 100
             }
     ]
-    
 }
 
 ];
