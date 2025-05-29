@@ -8,7 +8,7 @@ const KEYFILEPATH = './credentials.json';
 const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
 
 // L'ID du dossier Drive où tu veux stocker le fichier (optionnel)
-const DRIVE_FOLDER_ID = 'TON_ID_DOSSIER_DRIVE'; // Mets l'ID de ton dossier Drive ici
+const DRIVE_FOLDER_ID = '1gFVq7OIfdL94WtcJPzXh_G69i75lhYWy'; // Mets l'ID de ton dossier Drive ici
 
 async function uploadConfigToDrive() {
   const auth = new google.auth.GoogleAuth({
