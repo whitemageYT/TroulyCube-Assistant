@@ -1,0 +1,75 @@
+{
+  "bot": {
+    "token": "DISCORD_TOKEN",
+    "clientId": "CLIENT_ID"
+  },
+  "prefix": "!",
+  "reglement": {
+    "rulesChannelId": "1375432309116768316",
+    "messageId": "1376639944872951900",
+    "validatedRoleIds": [
+      "1375241608026656888",
+      "1375242986719285329"
+    ],
+    "embed": {
+      "title": "Règlement du serveur",
+      "description": "Merci de lire et d'accepter le règlement pour accéder au serveur. \n\n1. Soyez gentil, on est entre amis ! \n2. Respectez les autres membres \n3. Pas de grief (sauf accord du propriétaire ou en reposant le bloc après) \n4. Pas de vol de ressources rares/importantes (si c'est de la cobble/dirt bon voilà quoi). Si vous avez l'accord du propriétaire, alors c'est bon. \n5. Hésitez pas à demander de l'aide, on ne mord pas ! \n6. Attention à vos machines auto ! Si elles vous font lagguer elle font aussi lagguer quelqu'un d'autre. Merci d'y mettre des systèmes d'ON/OFF pour limiter les problèmes. \n7. Attention, le PVP est actif. N'en abusez pas. \n8. Attention à vos builds|propos|messages des gens stream sur le serveur. Vous pouvez quand même vous amuser et faire des connerie, mais mettez un panneau PAS DE STREAM ICI ❤️! \n\nCliquez sur ✅ pour accepter.",
+      "color": "#00ff99"
+    }
+  },
+  "servers": [
+    {
+      "name": "TroulyCube",
+      "ip": "troulycube.net",
+      "port": null,
+      "channelId": "1372173957700259871",
+      "messageId": "1376642483441762337",
+      "updateInterval": 300000,
+      "display": {
+        "chart": {
+          "enabled": true,
+          "historyHours": 24,
+          "color": "#3498db"
+        },
+        "showNextUpdate": true
+      },
+      "embed": {
+        "colors": {
+          "online": "#00ff00",
+          "offline": "#ff0000"
+        },
+        "title": "Statut du serveur :",
+        "footer": {
+          "text": "Fait avec amour par WhiteMage"
+        }
+      }
+    }
+  ],
+  "grades": {
+    "channelId": "1376573910077669500",
+    "messageId": "1376639957485224088",
+    "roles": {
+      "⛏️": "1375242115696693338",
+      "⚔️": "1375241968677818488",
+      "🛡️": "1375242615347216536",
+      "🏹": "1375242416759636099"
+    },
+    "embed": {
+      "title": "Choisissez votre/vos grades !",
+      "color": "#3498db"
+    }
+  },
+  "villages": {
+    "channelId": "1376675227060273212",
+    "messageId": "1376691407716352090",
+    "embed": {
+      "title": "Créer votre village !",
+      "description": "Cliquez sur le bouton ci-dessous pour créer votre propre village.\n\n Une fois votre village créé, faites la commande /recensée {nom d'utilisateur} pour ajouter une personne à ce dernier.\n\n Un salon texte, un salon vocal, un rôle Maire et un rôle Habitant seront créés automatiquement.",
+      "color": "#3498db"
+    },
+    "embedMessageId": "",  
+    "list": {
+      
+    }
+  }
+}

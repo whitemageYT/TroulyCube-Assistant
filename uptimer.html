@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Uptime Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+        }
+        .card-glow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(167, 119, 227, 0.4);
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .creator-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full">
+        <div class="bg-white rounded-xl shadow-xl overflow-hidden card-glow">
+            <div class="p-8">
+                <div class="flex justify-center mb-6">
+                    <div class="bg-indigo-100 p-4 rounded-full">
+                        <i class="fas fa-robot text-indigo-600 text-4xl"></i>
+                    </div>
+                </div>
+                
+                <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">Keep Your Bot Online 24/7</h1>
+                <p class="text-gray-600 text-center mb-8">Ensure your bot stays active by setting up uptime monitoring</p>
+                
+                <div class="bg-gray-50 rounded-lg p-6 mb-8">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-indigo-100 p-2 rounded-full mr-3">
+                            <i class="fas fa-link text-indigo-600"></i>
+                        </div>
+                        <h2 class="font-semibold text-gray-700">Your Bot's Link</h2>
+                    </div>
+                    
+                    <div class="relative">
+                        <input 
+                            id="botLink" 
+                            type="text" 
+                            readonly 
+                            class="w-full bg-white border border-gray-300 rounded-lg py-3 px-4 pr-12 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            value="">
+                        <button 
+                            onclick="copyToClipboard()" 
+                            class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1 rounded-md text-sm transition">
+                            <i class="fas fa-copy mr-1"></i> Copy
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-indigo-50 rounded-lg p-6 mb-8">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-indigo-200 p-2 rounded-full mr-3">
+                            <i class="fas fa-clock text-indigo-700"></i>
+                        </div>
+                        <h2 class="font-semibold text-gray-700">Uptime Monitoring Instructions</h2>
+                    </div>
+                    
+                    <ol class="list-decimal list-inside space-y-3 text-gray-700">
+                        <li>Go to <a href="https://upsky.sky-pix.xyz/" target="_blank" class="text-indigo-600 hover:underline">upsky.sky-pix.xyz</a></li>
+                        <li>Create an account or log in if you already have one</li>
+                        <li>Click on "Add New Monitor"</li>
+                        <li>Paste your bot's URL (copied above) in the URL field</li>
+                        <li>Set the monitoring interval (5 minutes recommended)</li>
+                        <li>Click "Save" to start monitoring</li>
+                    </ol>
+                </div>
+                
+                <div class="flex justify-center">
+                    <a 
+                        href="https://upsky.sky-pix.xyz/" 
+                        target="_blank" 
+                        class="pulse bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 rounded-lg inline-flex items-center transition">
+                        <i class="fas fa-external-link-alt mr-2"></i> Go to Uptimer Now
+                    </a>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 px-8 py-4">
+                <p class="text-center text-gray-500 text-sm">
+                    <i class="fas fa-info-circle mr-1"></i> Uptime monitoring helps keep your bot online by sending regular requests
+                </p>
+            </div>
+        </div>
+
+        <!-- Creator Credits Section -->
+        <div class="creator-card rounded-xl p-6 mt-6 text-white">
+            <div class="flex items-center justify-center mb-4">
+                <img src="https://avatars.githubusercontent.com/BLKOFFICIAL" alt="Creator Avatar" class="w-16 h-16 rounded-full border-2 border-white mr-4">
+                <div>
+                    <h3 class="text-xl font-bold">Team BLK</h3>
+                    <p class="text-sm opacity-80">Adithyadev K</p>
+                </div>
+            </div>
+            <div class="flex justify-center space-x-4">
+                <a href="https://www.youtube.com/@team_blk_official" target="_blank" class="hover:text-red-400 transition">
+                    <i class="fab fa-youtube text-2xl"></i>
+                </a>
+                <a href="https://github.com/BLKOFFICIAL" target="_blank" class="hover:text-gray-300 transition">
+                    <i class="fab fa-github text-2xl"></i>
+                </a>
+                <a href="https://discord.gg/RdDe766BCq" target="_blank" class="hover:text-indigo-300 transition">
+                    <i class="fab fa-discord text-2xl"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set the current URL as the bot link
+        document.getElementById('botLink').value = window.location.href;
+        
+        function copyToClipboard() {
+            const copyText = document.getElementById('botLink');
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            
+            // Show feedback
+            const copyBtn = event.currentTarget;
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check mr-1"></i> Copied!';
+            copyBtn.classList.remove('bg-indigo-100', 'hover:bg-indigo-200');
+            copyBtn.classList.add('bg-green-100', 'hover:bg-green-200', 'text-green-700');
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = originalText;
+                copyBtn.classList.remove('bg-green-100', 'hover:bg-green-200', 'text-green-700');
+                copyBtn.classList.add('bg-indigo-100', 'hover:bg-indigo-200', 'text-indigo-700');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
