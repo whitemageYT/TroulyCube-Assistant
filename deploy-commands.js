@@ -5,8 +5,14 @@
 const { REST, Routes } = require('discord.js');
 const config = require('./config.json');
 
-// Mets ici l'ID de ton serveur Discord
-const GUILD_ID = 'GUILD_ID';
+// Utilisation des variables d'environnement Render
+const token = process.env.DISCORD_TOKEN;
+const clientId = process.env.CLIENT_ID;
+const guildId = process.env.GUILD_ID;
+
+if (!token || !clientId || !guildId) {
+    throw new Error("DISCORD_TOKEN, CLIENT_ID ou GUILD_ID non définis dans les variables d'environnement Render !");
+}
 
 const commands = [
     {
@@ -75,13 +81,10 @@ const rest = new REST({ version: '10' }).setToken(config.bot.token);
 (async () => {
     try {
         console.log('Started refreshing application (/) commands.');
-
-        // Déploiement instantané sur ton serveur
         await rest.put(
-            Routes.applicationGuildCommands(config.bot.clientId, GUILD_ID),
+            Routes.applicationGuildCommands(clientId, guildId),
             { body: commands },
         );
-
         console.log('Successfully reloaded application (/) commands.');
     } catch (error) {
         console.error(error);
