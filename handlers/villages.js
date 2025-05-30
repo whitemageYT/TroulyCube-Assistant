@@ -13,6 +13,7 @@ const {
   PermissionsBitField,
   MessageFlags
 } = require('discord.js');
+const uploadConfigToDrive = require('../utils/driveUploader.js'); 
 
 // Fonction pour mettre à jour l'embed de la liste des villages
 async function updateVillagesEmbed(client) {
@@ -293,50 +294,57 @@ async function handleVillageInteractions(interaction) {
     }
 
     // Suppression d’un village
-    if (interaction.isChatInputCommand() && interaction.commandName === 'supprimer_village') {
-      const villageName = interaction.options.getString('village');
-      const member = interaction.member;
-      const guild = interaction.guild;
+if (interaction.isChatInputCommand() && interaction.commandName === 'supprimer_village') {
+  const villageName = interaction.options.getString('village');
+  const member = interaction.member;
+  const guild = interaction.guild;
 
-      const villages = config.villages.list || {};
-      if (!villages[villageName]) {
-        return interaction.reply({ content: "Ce village n'existe pas.", flags: MessageFlags.Ephemeral });
+  const villages = config.villages.list || {};
+  if (!villages[villageName]) {
+    return interaction.reply({ content: "Ce village n'existe pas.", flags: MessageFlags.Ephemeral });
+  }
+
+  const maireRole = guild.roles.cache.find(r => r.name === `maire de ${villageName}`);
+  if (!maireRole || !member.roles.cache.has(maireRole.id)) {
+    return interaction.reply({ content: "Tu n'es pas maire de ce village.", flags: MessageFlags.Ephemeral });
+  }
+
+  await interaction.reply({ content: `Suppression du village **${villageName}** en cours...`, flags: MessageFlags.Ephemeral });
+
+  try {
+    // Suppression des channels et de la catégorie
+    const category = guild.channels.cache.find(c => c.name === villageName && c.type === 4);
+    if (category) {
+      for (const channel of guild.channels.cache.filter(c => c.parentId === category.id).values()) {
+        await channel.delete("Suppression du village");
       }
-
-      const maireRole = guild.roles.cache.find(r => r.name === `maire de ${villageName}`);
-      if (!maireRole || !member.roles.cache.has(maireRole.id)) {
-        return interaction.reply({ content: "Tu n'es pas maire de ce village.", flags: MessageFlags.Ephemeral });
-      }
-
-      await interaction.reply({ content: `Suppression du village **${villageName}** en cours...`, flags: MessageFlags.Ephemeral });
-
-      try {
-        const category = guild.channels.cache.find(c => c.name === villageName && c.type === 4);
-        if (category) {
-          for (const channel of guild.channels.cache.filter(c => c.parentId === category.id).values()) {
-            await channel.delete("Suppression du village");
-          }
-          await category.delete("Suppression du village");
-        }
-
-        if (maireRole) await maireRole.delete("Suppression du village");
-        const habitantRole = guild.roles.cache.find(r => r.name === `habitant de ${villageName}`);
-        if (habitantRole) await habitantRole.delete("Suppression du village");
-
-        delete config.villages.list[villageName];
-        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-
-        await updateVillagesEmbed(interaction.client);
-
-        await interaction.editReply({ content: `Le village **${villageName}** a bien été supprimé !` });
-      } catch (e) {
-        logger.error("Erreur lors de la suppression du village :", e);
-        if (!interaction.replied && !interaction.deferred) {
-          await interaction.editReply({ content: "Erreur lors de la suppression du village." });
-        }
-      }
-      return;
+      await category.delete("Suppression du village");
     }
+
+    // Suppression des rôles
+    if (maireRole) await maireRole.delete("Suppression du village");
+    const habitantRole = guild.roles.cache.find(r => r.name === `habitant de ${villageName}`);
+    if (habitantRole) await habitantRole.delete("Suppression du village");
+
+    // Suppression dans la config locale
+    delete config.villages.list[villageName];
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+    // Upload automatique sur Google Drive
+    await uploadConfigToDrive();
+
+    // Mise à jour des embeds
+    await updateVillagesEmbed(interaction.client);
+
+    await interaction.editReply({ content: `Le village **${villageName}** a bien été supprimé et la configuration a été synchronisée sur Google Drive !` });
+  } catch (e) {
+    logger.error("Erreur lors de la suppression du village :", e);
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.editReply({ content: "Erreur lors de la suppression du village." });
+    }
+  }
+  return;
+}
 
   } catch (error) {
     logger.error(`[ERROR] Handler interaction :`, error);
