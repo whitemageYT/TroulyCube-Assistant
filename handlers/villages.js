@@ -184,55 +184,6 @@ async function handleVillageInteractions(interaction) {
           reason: `Création du village ${villageName}`
         });
 
-        // Ajout d’un habitant
-if (interaction.isChatInputCommand() && interaction.commandName === 'recensée') {
-  const utilisateur = interaction.options.getUser('utilisateur');
-  // Ici, tu dois retrouver le village du maire, puis donner le rôle "habitant de <village>" à l'utilisateur
-  // Exemple simplifié :
-  const member = await interaction.guild.members.fetch(utilisateur.id);
-  // Trouve le village dont interaction.member est maire
-  const villages = config.villages.list || {};
-  const maireVillage = Object.entries(villages).find(([name, data]) => {
-    const maireRole = interaction.guild.roles.cache.find(r => r.name === `maire de ${name}`);
-    return maireRole && interaction.member.roles.cache.has(maireRole.id);
-  });
-  if (!maireVillage) {
-    return interaction.reply({ content: "Tu n'es maire d'aucun village.", ephemeral: true });
-  }
-  const [villageName] = maireVillage;
-  const habitantRole = interaction.guild.roles.cache.find(r => r.name === `habitant de ${villageName}`);
-  if (!habitantRole) {
-    return interaction.reply({ content: "Rôle habitant introuvable.", ephemeral: true });
-  }
-  await member.roles.add(habitantRole);
-  await interaction.reply({ content: `${utilisateur} a été ajouté comme habitant de **${villageName}** !`, ephemeral: true });
-  return;
-}
-
-// Retrait d’un habitant
-if (interaction.isChatInputCommand() && interaction.commandName === 'dé-recensée') {
-  const utilisateur = interaction.options.getUser('utilisateur');
-  const member = await interaction.guild.members.fetch(utilisateur.id);
-  // Trouve le village dont interaction.member est maire
-  const villages = config.villages.list || {};
-  const maireVillage = Object.entries(villages).find(([name, data]) => {
-    const maireRole = interaction.guild.roles.cache.find(r => r.name === `maire de ${name}`);
-    return maireRole && interaction.member.roles.cache.has(maireRole.id);
-  });
-  if (!maireVillage) {
-    return interaction.reply({ content: "Tu n'es maire d'aucun village.", ephemeral: true });
-  }
-  const [villageName] = maireVillage;
-  const habitantRole = interaction.guild.roles.cache.find(r => r.name === `habitant de ${villageName}`);
-  if (!habitantRole) {
-    return interaction.reply({ content: "Rôle habitant introuvable.", ephemeral: true });
-  }
-  await member.roles.remove(habitantRole);
-  await interaction.reply({ content: `${utilisateur} a été retiré des habitants de **${villageName}** !`, ephemeral: true });
-  return;
-}
-
-
         // Crée la catégorie
         const category = await interaction.guild.channels.create({
           name: villageName,
@@ -352,6 +303,54 @@ if (interaction.isChatInputCommand() && interaction.commandName === 'dé-recens�
         logger.error("Erreur lors de la suppression du village :", e);
         await interaction.editReply({ content: "Erreur lors de la suppression du village." });
       }
+      return;
+    }
+
+    // Ajout d’un habitant
+    if (interaction.isChatInputCommand() && interaction.commandName === 'recensée') {
+      const utilisateur = interaction.options.getUser('utilisateur');
+      const member = await interaction.guild.members.fetch(utilisateur.id);
+
+      // Trouve le village dont interaction.member est maire
+      const villages = config.villages.list || {};
+      const maireVillage = Object.entries(villages).find(([name, data]) => {
+        const maireRole = interaction.guild.roles.cache.find(r => r.name === `maire de ${name}`);
+        return maireRole && interaction.member.roles.cache.has(maireRole.id);
+      });
+      if (!maireVillage) {
+        return interaction.reply({ content: "Tu n'es maire d'aucun village.", ephemeral: true });
+      }
+      const [villageName] = maireVillage;
+      const habitantRole = interaction.guild.roles.cache.find(r => r.name === `habitant de ${villageName}`);
+      if (!habitantRole) {
+        return interaction.reply({ content: "Rôle habitant introuvable.", ephemeral: true });
+      }
+      await member.roles.add(habitantRole);
+      await interaction.reply({ content: `${utilisateur} a été ajouté comme habitant de **${villageName}** !`, ephemeral: true });
+      return;
+    }
+
+    // Retrait d’un habitant
+    if (interaction.isChatInputCommand() && interaction.commandName === 'dé-recensée') {
+      const utilisateur = interaction.options.getUser('utilisateur');
+      const member = await interaction.guild.members.fetch(utilisateur.id);
+
+      // Trouve le village dont interaction.member est maire
+      const villages = config.villages.list || {};
+      const maireVillage = Object.entries(villages).find(([name, data]) => {
+        const maireRole = interaction.guild.roles.cache.find(r => r.name === `maire de ${name}`);
+        return maireRole && interaction.member.roles.cache.has(maireRole.id);
+      });
+      if (!maireVillage) {
+        return interaction.reply({ content: "Tu n'es maire d'aucun village.", ephemeral: true });
+      }
+      const [villageName] = maireVillage;
+      const habitantRole = interaction.guild.roles.cache.find(r => r.name === `habitant de ${villageName}`);
+      if (!habitantRole) {
+        return interaction.reply({ content: "Rôle habitant introuvable.", ephemeral: true });
+      }
+      await member.roles.remove(habitantRole);
+      await interaction.reply({ content: `${utilisateur} a été retiré des habitants de **${villageName}** !`, ephemeral: true });
       return;
     }
 
