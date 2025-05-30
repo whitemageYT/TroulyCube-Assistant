@@ -20,7 +20,6 @@ async function updateVillagesEmbed(client) {
   const channel = await client.channels.fetch(channelId).catch(() => null);
   if (!channel) return;
 
-  // Prépare la liste des villages
   const villagesData = config.villages.list || {};
   const roles = await channel.guild.roles.fetch();
 
@@ -48,7 +47,6 @@ async function updateVillagesEmbed(client) {
     });
   });
 
-  // Essaye d'éditer le message existant, sinon crée-le
   let message;
   if (config.villages.embedMessageId) {
     message = await channel.messages.fetch(config.villages.embedMessageId).catch(() => null);
@@ -57,7 +55,6 @@ async function updateVillagesEmbed(client) {
       return;
     }
   }
-  // Si le message n'existe pas, envoie-en un nouveau et sauvegarde son ID
   message = await channel.send({ embeds: [embed] });
   config.villages.embedMessageId = message.id;
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -147,6 +144,7 @@ async function handleVillageInteractions(interaction) {
               .setRequired(true)
           )
         );
+      // IMPORTANT : on ne fait rien d'autre après showModal
       return interaction.showModal(modal);
     }
 
@@ -156,19 +154,16 @@ async function handleVillageInteractions(interaction) {
       let color = interaction.fields.getTextInputValue('village_color').trim();
       const villageDesc = interaction.fields.getTextInputValue('village_desc').trim().substring(0, 200);
 
-      // Validation couleur hexadécimale
       if (!/^#?([0-9A-Fa-f]{6})$/.test(color)) {
         return interaction.reply({ content: "La couleur doit être au format hexadécimal, ex: #3498db", flags: MessageFlags.Ephemeral });
       }
       if (!color.startsWith('#')) color = '#' + color;
 
-      // Vérifie que le nom n'existe pas déjà
       if (interaction.guild.channels.cache.find(c => c.name.toLowerCase() === villageName.toLowerCase())) {
         return interaction.reply({ content: "Un village porte déjà ce nom.", flags: MessageFlags.Ephemeral });
       }
 
       try {
-        // Crée les rôles
         const maireRole = await interaction.guild.roles.create({
           name: `maire de ${villageName}`,
           color: color,
@@ -184,13 +179,12 @@ async function handleVillageInteractions(interaction) {
           reason: `Création du village ${villageName}`
         });
 
-        // Crée la catégorie
         const category = await interaction.guild.channels.create({
           name: villageName,
           type: 4, // GUILD_CATEGORY
           permissionOverwrites: [
             {
-              id: interaction.guild.id, // everyone
+              id: interaction.guild.id,
               deny: [PermissionsBitField.Flags.ViewChannel]
             },
             {
@@ -214,7 +208,6 @@ async function handleVillageInteractions(interaction) {
           ]
         });
 
-        // Crée les salons dans la catégorie
         await interaction.guild.channels.create({
           name: 'discussion',
           type: 0, // GUILD_TEXT
@@ -226,10 +219,8 @@ async function handleVillageInteractions(interaction) {
           parent: category.id
         });
 
-        // Donne le rôle maire au créateur
         await interaction.member.roles.add(maireRole);
 
-        // Enregistre le village dans la config
         if (!config.villages.list) config.villages.list = {};
         config.villages.list[villageName] = {
           color,
@@ -241,12 +232,11 @@ async function handleVillageInteractions(interaction) {
         logger.success(`Village "${villageName}" créé par ${interaction.user.tag} avec couleur ${color}`);
         await interaction.reply({ content: `Ton village **${villageName}** a été créé avec succès !`, flags: MessageFlags.Ephemeral });
 
-        // Met à jour l'embed de la liste des villages
         await updateVillagesEmbed(interaction.client);
 
       } catch (error) {
         logger.error(`Erreur lors de la création du village "${villageName}":`, error);
-        if (!interaction.replied) {
+        if (!interaction.replied && !interaction.deferred) {
           await interaction.reply({ content: "Une erreur est survenue lors de la création du village.", flags: MessageFlags.Ephemeral });
         }
       }
@@ -258,7 +248,6 @@ async function handleVillageInteractions(interaction) {
       const member = interaction.member;
       const guild = interaction.guild;
 
-      // Trouver le village dont l'utilisateur est maire
       const villages = config.villages.list || {};
       const maireVillage = Object.entries(villages).find(([name, data]) => {
         const maireRole = guild.roles.cache.find(r => r.name === `maire de ${name}`);
@@ -271,37 +260,33 @@ async function handleVillageInteractions(interaction) {
 
       const [villageName] = maireVillage;
 
-      // Confirmation (optionnel)
       await interaction.reply({ content: `Suppression du village **${villageName}** en cours...`, flags: MessageFlags.Ephemeral });
 
       try {
-        // Supprimer la catégorie et les salons
-        const category = guild.channels.cache.find(c => c.name === villageName && c.type === 4); // 4 = GUILD_CATEGORY
+        const category = guild.channels.cache.find(c => c.name === villageName && c.type === 4);
         if (category) {
-          // Supprime tous les salons enfants
           for (const channel of guild.channels.cache.filter(c => c.parentId === category.id).values()) {
             await channel.delete("Suppression du village");
           }
           await category.delete("Suppression du village");
         }
 
-        // Supprimer les rôles
         const maireRole = guild.roles.cache.find(r => r.name === `maire de ${villageName}`);
         const habitantRole = guild.roles.cache.find(r => r.name === `habitant de ${villageName}`);
         if (maireRole) await maireRole.delete("Suppression du village");
         if (habitantRole) await habitantRole.delete("Suppression du village");
 
-        // Supprimer du config.json
         delete config.villages.list[villageName];
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
-        // Mettre à jour l'embed
         await updateVillagesEmbed(interaction.client);
 
         await interaction.editReply({ content: `Le village **${villageName}** a bien été supprimé !` });
       } catch (e) {
         logger.error("Erreur lors de la suppression du village :", e);
-        await interaction.editReply({ content: "Erreur lors de la suppression du village." });
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.editReply({ content: "Erreur lors de la suppression du village." });
+        }
       }
       return;
     }
@@ -311,22 +296,21 @@ async function handleVillageInteractions(interaction) {
       const utilisateur = interaction.options.getUser('utilisateur');
       const member = await interaction.guild.members.fetch(utilisateur.id);
 
-      // Trouve le village dont interaction.member est maire
       const villages = config.villages.list || {};
       const maireVillage = Object.entries(villages).find(([name, data]) => {
         const maireRole = interaction.guild.roles.cache.find(r => r.name === `maire de ${name}`);
         return maireRole && interaction.member.roles.cache.has(maireRole.id);
       });
       if (!maireVillage) {
-        return interaction.reply({ content: "Tu n'es maire d'aucun village.", ephemeral: true });
+        return interaction.reply({ content: "Tu n'es maire d'aucun village.", flags: MessageFlags.Ephemeral });
       }
       const [villageName] = maireVillage;
       const habitantRole = interaction.guild.roles.cache.find(r => r.name === `habitant de ${villageName}`);
       if (!habitantRole) {
-        return interaction.reply({ content: "Rôle habitant introuvable.", ephemeral: true });
+        return interaction.reply({ content: "Rôle habitant introuvable.", flags: MessageFlags.Ephemeral });
       }
       await member.roles.add(habitantRole);
-      await interaction.reply({ content: `${utilisateur} a été ajouté comme habitant de **${villageName}** !`, ephemeral: true });
+      await interaction.reply({ content: `${utilisateur} a été ajouté comme habitant de **${villageName}** !`, flags: MessageFlags.Ephemeral });
       return;
     }
 
@@ -335,33 +319,29 @@ async function handleVillageInteractions(interaction) {
       const utilisateur = interaction.options.getUser('utilisateur');
       const member = await interaction.guild.members.fetch(utilisateur.id);
 
-      // Trouve le village dont interaction.member est maire
       const villages = config.villages.list || {};
       const maireVillage = Object.entries(villages).find(([name, data]) => {
         const maireRole = interaction.guild.roles.cache.find(r => r.name === `maire de ${name}`);
         return maireRole && interaction.member.roles.cache.has(maireRole.id);
       });
       if (!maireVillage) {
-        return interaction.reply({ content: "Tu n'es maire d'aucun village.", ephemeral: true });
+        return interaction.reply({ content: "Tu n'es maire d'aucun village.", flags: MessageFlags.Ephemeral });
       }
       const [villageName] = maireVillage;
       const habitantRole = interaction.guild.roles.cache.find(r => r.name === `habitant de ${villageName}`);
       if (!habitantRole) {
-        return interaction.reply({ content: "Rôle habitant introuvable.", ephemeral: true });
+        return interaction.reply({ content: "Rôle habitant introuvable.", flags: MessageFlags.Ephemeral });
       }
       await member.roles.remove(habitantRole);
-      await interaction.reply({ content: `${utilisateur} a été retiré des habitants de **${villageName}** !`, ephemeral: true });
+      await interaction.reply({ content: `${utilisateur} a été retiré des habitants de **${villageName}** !`, flags: MessageFlags.Ephemeral });
       return;
     }
-
-    // Ajoute ici d'autres commandes slash si besoin
 
   } catch (error) {
     logger.error(`[ERROR] Handler interaction :`, error);
     try {
-      if (interaction.replied || interaction.deferred) {
-        await interaction.followUp({ content: "Erreur interne.", flags: MessageFlags.Ephemeral });
-      } else {
+      // Ne répond que si ce n'est pas déjà fait ET que ce n'était pas un bouton ouvrant une modale
+      if (!interaction.replied && !interaction.deferred && !(interaction.isButton && interaction.isButton())) {
         await interaction.reply({ content: "Erreur interne.", flags: MessageFlags.Ephemeral });
       }
     } catch (e) {
