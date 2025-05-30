@@ -2,7 +2,7 @@
 
 module.exports = function handleSupprimer(client) {
   client.on('interactionCreate', async interaction => {
-    if (!interaction.isChatInputCommand() || interaction.commandName !== 'supr')
+    if (!interaction.isChatInputCommand() || interaction.commandName !== 'clear')
       return;
 
     // Permission check

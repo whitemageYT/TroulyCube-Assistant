@@ -47,6 +47,8 @@ client.once('ready', async () => {
   await setupVillageEmbed(client);
   handleVillageInteractions(client);
 
+  await handleVillageInteractions(interaction);
+
   updateEmbeds(client);
 
   handleSupprimer(client);
