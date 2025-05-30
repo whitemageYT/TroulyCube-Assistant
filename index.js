@@ -64,11 +64,14 @@ client.once('ready', async () => {
 
 // === Gestion centralisée des interactions ===
 client.on('interactionCreate', async interaction => {
+  // Vérifie que c'est bien une interaction Discord.js
+  if (!interaction || typeof interaction.isButton !== "function") return;
+  try {
   // Transfère toutes les interactions aux handlers concernés
   await handleExportConfig(interaction);
   await handleVillageInteractions(interaction); 
   // Ajoutez ici d'autres handlers si nécessaire
-});
+  }});
 
 // Attribution du rôle à la réaction (Règlement + Grades)
 client.on('messageReactionAdd', async (reaction, user) => {
