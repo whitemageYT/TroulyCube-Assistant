@@ -48,7 +48,7 @@ async function updateVillagesEmbed(client) {
     });
   });
 
-  // MODIFICATION : Essaye d'éditer le message existant, sinon crée-le
+  // Essaye d'éditer le message existant, sinon crée-le
   let message;
   if (config.villages.embedMessageId) {
     message = await channel.messages.fetch(config.villages.embedMessageId).catch(() => null);
@@ -106,6 +106,16 @@ async function setupVillageEmbed(client) {
 
 // Handler d'interactions à appeler depuis index.js
 async function handleVillageInteractions(interaction) {
+  // Sécurité : ne traite que les vraies interactions Discord.js
+  if (
+    !interaction ||
+    typeof interaction.isButton !== "function" ||
+    typeof interaction.isChatInputCommand !== "function" ||
+    typeof interaction.isModalSubmit !== "function" ||
+    typeof interaction.reply !== "function"
+  ) {
+    return;
+  }
   try {
     // Bouton → ouvrir la modale
     if (interaction.isButton() && interaction.customId === 'create_village') {
@@ -227,14 +237,11 @@ async function handleVillageInteractions(interaction) {
           created: new Date().toISOString()
         };
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-        // Si tu utilises Google Drive, décommente la ligne ci-dessous
-        // const uploadConfigToDrive = require('../utils/driveUploader.js');
-        // uploadConfigToDrive().catch(console.error);
 
         logger.success(`Village "${villageName}" créé par ${interaction.user.tag} avec couleur ${color}`);
         await interaction.reply({ content: `Ton village **${villageName}** a été créé avec succès !`, flags: MessageFlags.Ephemeral });
 
-        // Met à jour l'embed de la liste des villages (modifie le message existant si possible)
+        // Met à jour l'embed de la liste des villages
         await updateVillagesEmbed(interaction.client);
 
       } catch (error) {
