@@ -10,7 +10,8 @@ const {
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
-  PermissionsBitField
+  PermissionsBitField,
+  MessageFlags
 } = require('discord.js');
 
 // Fonction pour mettre à jour l'embed de la liste des villages
@@ -47,21 +48,19 @@ async function updateVillagesEmbed(client) {
     });
   });
 
-  // Envoie ou modifie le message
-  try {
-    if (config.villages.embedMessageId) {
-      const msg = await channel.messages.fetch(config.villages.embedMessageId).catch(() => null);
-      if (msg) {
-        await msg.edit({ embeds: [embed] });
-        return;
-      }
+  // Essaye d'éditer le message existant, sinon crée-le
+  let message;
+  if (config.villages.embedMessageId) {
+    message = await channel.messages.fetch(config.villages.embedMessageId).catch(() => null);
+    if (message) {
+      await message.edit({ embeds: [embed] });
+      return;
     }
-    const message = await channel.send({ embeds: [embed] });
-    config.villages.embedMessageId = message.id;
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-  } catch (e) {
-    logger.error("Erreur lors de la mise à jour de l'embed villages :", e);
   }
+  // Si le message n'existe pas, envoie-en un nouveau et sauvegarde son ID
+  message = await channel.send({ embeds: [embed] });
+  config.villages.embedMessageId = message.id;
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 }
 
 // Affichage du bouton de création de village
@@ -105,9 +104,19 @@ async function setupVillageEmbed(client) {
   }
 }
 
-// Gestion des interactions
-function handleVillageInteractions(client) {
-  client.on('interactionCreate', async interaction => {
+// Handler d'interactions à appeler depuis index.js
+async function handleVillageInteractions(interaction) {
+  // Sécurité : ne traite que les vraies interactions Discord.js
+  if (
+    !interaction ||
+    typeof interaction.isButton !== "function" ||
+    typeof interaction.isChatInputCommand !== "function" ||
+    typeof interaction.isModalSubmit !== "function" ||
+    typeof interaction.reply !== "function"
+  ) {
+    return;
+  }
+  try {
     // Bouton → ouvrir la modale
     if (interaction.isButton() && interaction.customId === 'create_village') {
       const modal = new ModalBuilder()
@@ -149,13 +158,13 @@ function handleVillageInteractions(client) {
 
       // Validation couleur hexadécimale
       if (!/^#?([0-9A-Fa-f]{6})$/.test(color)) {
-        return interaction.reply({ content: "La couleur doit être au format hexadécimal, ex: #3498db", ephemeral: true });
+        return interaction.reply({ content: "La couleur doit être au format hexadécimal, ex: #3498db", flags: MessageFlags.Ephemeral });
       }
       if (!color.startsWith('#')) color = '#' + color;
 
       // Vérifie que le nom n'existe pas déjà
       if (interaction.guild.channels.cache.find(c => c.name.toLowerCase() === villageName.toLowerCase())) {
-        return interaction.reply({ content: "Un village porte déjà ce nom.", ephemeral: true });
+        return interaction.reply({ content: "Un village porte déjà ce nom.", flags: MessageFlags.Ephemeral });
       }
 
       try {
@@ -279,17 +288,87 @@ if (interaction.isChatInputCommand() && interaction.commandName === 'dé-recens�
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
         logger.success(`Village "${villageName}" créé par ${interaction.user.tag} avec couleur ${color}`);
-        await interaction.reply({ content: `Ton village **${villageName}** a été créé avec succès !`, ephemeral: true });
+        await interaction.reply({ content: `Ton village **${villageName}** a été créé avec succès !`, flags: MessageFlags.Ephemeral });
 
         // Met à jour l'embed de la liste des villages
         await updateVillagesEmbed(interaction.client);
 
       } catch (error) {
         logger.error(`Erreur lors de la création du village "${villageName}":`, error);
-        await interaction.reply({ content: "Une erreur est survenue lors de la création du village.", ephemeral: true });
+        if (!interaction.replied) {
+          await interaction.reply({ content: "Une erreur est survenue lors de la création du village.", flags: MessageFlags.Ephemeral });
+        }
       }
+      return;
     }
-  });
+
+    // Handler pour /supprimer_village
+    if (interaction.isChatInputCommand() && interaction.commandName === 'supprimer_village') {
+      const member = interaction.member;
+      const guild = interaction.guild;
+
+      // Trouver le village dont l'utilisateur est maire
+      const villages = config.villages.list || {};
+      const maireVillage = Object.entries(villages).find(([name, data]) => {
+        const maireRole = guild.roles.cache.find(r => r.name === `maire de ${name}`);
+        return maireRole && member.roles.cache.has(maireRole.id);
+      });
+
+      if (!maireVillage) {
+        return interaction.reply({ content: "Tu n'es maire d'aucun village, ou tu n'as pas les permissions.", flags: MessageFlags.Ephemeral });
+      }
+
+      const [villageName] = maireVillage;
+
+      // Confirmation (optionnel)
+      await interaction.reply({ content: `Suppression du village **${villageName}** en cours...`, flags: MessageFlags.Ephemeral });
+
+      try {
+        // Supprimer la catégorie et les salons
+        const category = guild.channels.cache.find(c => c.name === villageName && c.type === 4); // 4 = GUILD_CATEGORY
+        if (category) {
+          // Supprime tous les salons enfants
+          for (const channel of guild.channels.cache.filter(c => c.parentId === category.id).values()) {
+            await channel.delete("Suppression du village");
+          }
+          await category.delete("Suppression du village");
+        }
+
+        // Supprimer les rôles
+        const maireRole = guild.roles.cache.find(r => r.name === `maire de ${villageName}`);
+        const habitantRole = guild.roles.cache.find(r => r.name === `habitant de ${villageName}`);
+        if (maireRole) await maireRole.delete("Suppression du village");
+        if (habitantRole) await habitantRole.delete("Suppression du village");
+
+        // Supprimer du config.json
+        delete config.villages.list[villageName];
+        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+        // Mettre à jour l'embed
+        await updateVillagesEmbed(interaction.client);
+
+        await interaction.editReply({ content: `Le village **${villageName}** a bien été supprimé !` });
+      } catch (e) {
+        logger.error("Erreur lors de la suppression du village :", e);
+        await interaction.editReply({ content: "Erreur lors de la suppression du village." });
+      }
+      return;
+    }
+
+    // Ajoute ici d'autres commandes slash si besoin
+
+  } catch (error) {
+    logger.error(`[ERROR] Handler interaction :`, error);
+    try {
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp({ content: "Erreur interne.", flags: MessageFlags.Ephemeral });
+      } else {
+        await interaction.reply({ content: "Erreur interne.", flags: MessageFlags.Ephemeral });
+      }
+    } catch (e) {
+      logger.error("Erreur lors de la réponse à une erreur d'interaction :", e);
+    }
+  }
 }
 
 module.exports = {

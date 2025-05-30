@@ -1,12 +1,14 @@
-/**
- * Minecraft Server Status Bot - Command Deployment
- */
-
 const { REST, Routes } = require('discord.js');
 const config = require('./config.json');
 
-// Mets ici l'ID de ton serveur Discord
-const GUILD_ID = 'DISCORD_ID';
+// Utilisation des variables d'environnement Render
+const token = process.env.DISCORD_TOKEN;
+const clientId = process.env.CLIENT_ID;
+const guildId = process.env.GUILD_ID;
+
+if (!token || !clientId || !guildId) {
+    throw new Error("DISCORD_TOKEN, CLIENT_ID ou GUILD_ID non définis dans les variables d'environnement Render !");
+}
 
 const commands = [
     {
@@ -50,6 +52,14 @@ const commands = [
         ]
     },
     {
+    name: 'export_config',
+    description: 'Envoie le fichier config.json à jour en DM (admin seulement)'
+    },
+    {
+        name: 'supprimer_village',
+        description: 'Supprime ton village (maire uniquement)',
+    },
+    {
         name: 'clear',
         description: 'Supprimer un nombre de messages dans ce salon',
         options: [
@@ -66,18 +76,15 @@ const commands = [
 
 ];
 
-const rest = new REST({ version: '10' }).setToken(config.bot.token);
+const rest = new REST({ version: '10' }).setToken(token);
 
 (async () => {
     try {
         console.log('Started refreshing application (/) commands.');
-
-        // Déploiement instantané sur ton serveur
         await rest.put(
-            Routes.applicationGuildCommands(config.bot.clientId, GUILD_ID),
+            Routes.applicationGuildCommands(clientId, guildId),
             { body: commands },
         );
-
         console.log('Successfully reloaded application (/) commands.');
     } catch (error) {
         console.error(error);

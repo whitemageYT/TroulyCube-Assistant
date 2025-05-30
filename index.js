@@ -8,7 +8,8 @@ const { upsertGradesEmbed, handleGradesReaction } = require('./handlers/gradesAs
 const express = require('express');
 const { setupVillageEmbed, handleVillageInteractions } = require('./handlers/villages.js');
 const handleSupprimer = require('./handlers/supprimer.js');
-const updateEmbeds = require('./handlers/updateEmbeds');
+const updateEmbeds = require('./handlers/updateEmbeds.js');
+const handleExportConfig = require('./handlers/exportConfig.js');
 
 const app = express();
 const client = new Client({
@@ -45,7 +46,6 @@ client.once('ready', async () => {
 
   // Gestion des villages
   await setupVillageEmbed(client);
-  handleVillageInteractions(client);
 
   await handleVillageInteractions(interaction);
 
@@ -54,13 +54,37 @@ client.once('ready', async () => {
   handleSupprimer(client);
 
   // Statut Minecraft (pour chaque serveur)
-  // Statut Minecraft
   config.servers.forEach(server => {
     upsertServerStatusMessage(client, server, config);
     setInterval(() => {
       upsertServerStatusMessage(client, server, config);
     }, server.updateInterval || 300000);
   });
+});
+
+// === Gestion centralisée des interactions ===
+client.on('interactionCreate', async interaction => {
+  // Vérifie que c'est bien une interaction Discord.js
+  if (
+    !interaction ||
+    typeof interaction.isButton !== "function" ||
+    typeof interaction.isChatInputCommand !== "function" ||
+    typeof interaction.isModalSubmit !== "function" ||
+    typeof interaction.reply !== "function"
+  ) {
+    return;
+  }
+  try {
+    // Transfère toutes les interactions aux handlers concernés
+    await handleExportConfig(interaction);
+    await handleVillageInteractions(interaction); 
+    // Ajoutez ici d'autres handlers si nécessaire
+  } catch (error) {
+    logger.error('Erreur non gérée dans interactionCreate:', error);
+    if (!interaction.replied) {
+      await interaction.reply({ content: "Erreur interne du bot", ephemeral: true });
+    }
+  }
 });
 
 // Attribution du rôle à la réaction (Règlement + Grades)
