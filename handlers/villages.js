@@ -150,98 +150,102 @@ async function handleVillageInteractions(interaction) {
 
     // Modale validée → création du village
     if (interaction.isModalSubmit() && interaction.customId === 'village_modal') {
-      const villageName = interaction.fields.getTextInputValue('village_name').trim().substring(0, 50);
-      let color = interaction.fields.getTextInputValue('village_color').trim();
-      const villageDesc = interaction.fields.getTextInputValue('village_desc').trim().substring(0, 200);
+  const villageName = interaction.fields.getTextInputValue('village_name').trim().substring(0, 50);
+  let color = interaction.fields.getTextInputValue('village_color').trim();
+  const villageDesc = interaction.fields.getTextInputValue('village_desc').trim().substring(0, 200);
 
-      if (!/^#?([0-9A-Fa-f]{6})$/.test(color)) {
-        return interaction.reply({ content: "La couleur doit être au format hexadécimal, ex: #3498db", flags: MessageFlags.Ephemeral });
-      }
-      if (!color.startsWith('#')) color = '#' + color;
+  if (!/^#?([0-9A-Fa-f]{6})$/.test(color)) {
+    return interaction.reply({ content: "La couleur doit être au format hexadécimal, ex: #3498db", flags: MessageFlags.Ephemeral });
+  }
+  if (!color.startsWith('#')) color = '#' + color;
 
-      if (interaction.guild.channels.cache.find(c => c.name.toLowerCase() === villageName.toLowerCase())) {
-        return interaction.reply({ content: "Un village porte déjà ce nom.", flags: MessageFlags.Ephemeral });
-      }
+  if (interaction.guild.channels.cache.find(c => c.name.toLowerCase() === villageName.toLowerCase())) {
+    return interaction.reply({ content: "Un village porte déjà ce nom.", flags: MessageFlags.Ephemeral });
+  }
 
-      try {
-        const maireRole = await interaction.guild.roles.create({
-          name: `maire de ${villageName}`,
-          color: color,
-          permissions: [],
-          mentionable: true,
-          reason: `Création du village ${villageName}`
-        });
-        const habitantRole = await interaction.guild.roles.create({
-          name: `habitant de ${villageName}`,
-          color: color,
-          permissions: [],
-          mentionable: true,
-          reason: `Création du village ${villageName}`
-        });
+  try {
+    const maireRole = await interaction.guild.roles.create({
+      name: `maire de ${villageName}`,
+      color: color,
+      permissions: [],
+      mentionable: true,
+      reason: `Création du village ${villageName}`
+    });
+    const habitantRole = await interaction.guild.roles.create({
+      name: `habitant de ${villageName}`,
+      color: color,
+      permissions: [],
+      mentionable: true,
+      reason: `Création du village ${villageName}`
+    });
 
-        const category = await interaction.guild.channels.create({
-          name: villageName,
-          type: 4, // GUILD_CATEGORY
-          permissionOverwrites: [
-            {
-              id: interaction.guild.id,
-              deny: [PermissionsBitField.Flags.ViewChannel]
-            },
-            {
-              id: maireRole.id,
-              allow: [
-                PermissionsBitField.Flags.ViewChannel,
-                PermissionsBitField.Flags.ManageChannels,
-                PermissionsBitField.Flags.ManageRoles,
-                PermissionsBitField.Flags.ManageMessages
-              ]
-            },
-            {
-              id: habitantRole.id,
-              allow: [
-                PermissionsBitField.Flags.ViewChannel,
-                PermissionsBitField.Flags.SendMessages,
-                PermissionsBitField.Flags.Connect,
-                PermissionsBitField.Flags.Speak
-              ]
-            }
+    const category = await interaction.guild.channels.create({
+      name: villageName,
+      type: 4, // GUILD_CATEGORY
+      permissionOverwrites: [
+        {
+          id: interaction.guild.id,
+          deny: [PermissionsBitField.Flags.ViewChannel]
+        },
+        {
+          id: maireRole.id,
+          allow: [
+            PermissionsBitField.Flags.ViewChannel,
+            PermissionsBitField.Flags.ManageChannels,
+            PermissionsBitField.Flags.ManageRoles,
+            PermissionsBitField.Flags.ManageMessages
           ]
-        });
-
-        await interaction.guild.channels.create({
-          name: 'discussion',
-          type: 0, // GUILD_TEXT
-          parent: category.id
-        });
-        await interaction.guild.channels.create({
-          name: 'bla-bla',
-          type: 2, // GUILD_VOICE
-          parent: category.id
-        });
-
-        await interaction.member.roles.add(maireRole);
-
-        if (!config.villages.list) config.villages.list = {};
-        config.villages.list[villageName] = {
-          color,
-          desc: villageDesc,
-          created: new Date().toISOString()
-        };
-        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-
-        logger.success(`Village "${villageName}" créé par ${interaction.user.tag} avec couleur ${color}`);
-        await interaction.reply({ content: `Ton village **${villageName}** a été créé avec succès !`, flags: MessageFlags.Ephemeral });
-
-        await updateVillagesEmbed(interaction.client);
-
-      } catch (error) {
-        logger.error(`Erreur lors de la création du village "${villageName}":`, error);
-        if (!interaction.replied && !interaction.deferred) {
-          await interaction.reply({ content: "Une erreur est survenue lors de la création du village.", flags: MessageFlags.Ephemeral });
+        },
+        {
+          id: habitantRole.id,
+          allow: [
+            PermissionsBitField.Flags.ViewChannel,
+            PermissionsBitField.Flags.SendMessages,
+            PermissionsBitField.Flags.Connect,
+            PermissionsBitField.Flags.Speak
+          ]
         }
-      }
-      return;
+      ]
+    });
+
+    await interaction.guild.channels.create({
+      name: 'discussion',
+      type: 0, // GUILD_TEXT
+      parent: category.id
+    });
+    await interaction.guild.channels.create({
+      name: 'bla-bla',
+      type: 2, // GUILD_VOICE
+      parent: category.id
+    });
+
+    await interaction.member.roles.add(maireRole);
+
+    if (!config.villages.list) config.villages.list = {};
+    config.villages.list[villageName] = {
+      color,
+      desc: villageDesc,
+      created: new Date().toISOString()
+    };
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+    // === Upload automatique sur Google Drive ===
+    await uploadConfigToDrive();
+
+    logger.success(`Village "${villageName}" créé par ${interaction.user.tag} avec couleur ${color}`);
+    await interaction.reply({ content: `Ton village **${villageName}** a été créé avec succès et synchronisé sur Google Drive !`, flags: MessageFlags.Ephemeral });
+
+    await updateVillagesEmbed(interaction.client);
+
+  } catch (error) {
+    logger.error(`Erreur lors de la création du village "${villageName}":`, error);
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({ content: "Une erreur est survenue lors de la création du village.", flags: MessageFlags.Ephemeral });
     }
+  }
+  return;
+}
+
 
     // Ajout d’un habitant
     if (interaction.isChatInputCommand() && interaction.commandName === 'recensée') {
