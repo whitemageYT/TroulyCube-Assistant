@@ -46,7 +46,7 @@ const commands = [
   ]
 },
 {
-  name: 'dérecensée',
+  name: 'dé-recensée',
   description: 'Retirer un membre de ton village',
   options: [
     {
