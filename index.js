@@ -47,8 +47,6 @@ client.once('ready', async () => {
   // Gestion des villages
   await setupVillageEmbed(client);
 
-  await handleVillageInteractions(interaction);
-
   updateEmbeds(client);
 
   handleSupprimer(client);
