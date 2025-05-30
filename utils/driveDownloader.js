@@ -5,7 +5,7 @@ const path = require('path');
 
 const KEYFILEPATH = './credentials.json';
 const SCOPES = ['https://www.googleapis.com/auth/drive.readonly'];
-const DRIVE_FOLDER_ID = 'TON_ID_DOSSIER_DRIVE';
+const DRIVE_FOLDER_ID = '1gFVq7OIfdL94WtcJPzXh_G69i75lhYWy';
 
 async function downloadConfigFromDrive(localPath = './config.json') {
   const auth = new google.auth.GoogleAuth({
