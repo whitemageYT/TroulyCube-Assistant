@@ -71,7 +71,11 @@ client.on('interactionCreate', async interaction => {
   await handleExportConfig(interaction);
   await handleVillageInteractions(interaction); 
   // Ajoutez ici d'autres handlers si nécessaire
-  }});
+    } catch (error) {
+  logger.error('Erreur non gérée dans interactionCreate:', error);
+  if (!interaction.replied) {
+    await interaction.reply({ content: "Erreur interne du bot", ephemeral: true });
+  }}});
 
 // Attribution du rôle à la réaction (Règlement + Grades)
 client.on('messageReactionAdd', async (reaction, user) => {
