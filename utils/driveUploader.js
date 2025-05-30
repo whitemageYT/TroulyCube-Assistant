@@ -2,12 +2,8 @@ const { google } = require('googleapis');
 const fs = require('fs');
 const path = require('path');
 
-// Chemin vers ton fichier d'identifiants
 const KEYFILEPATH = './credentials.json';
-// Les permissions nécessaires
 const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
-
-// L'ID du dossier Drive où tu veux stocker le fichier (optionnel)
 const DRIVE_FOLDER_ID = '1gFVq7OIfdL94WtcJPzXh_G69i75lhYWy'; // Mets l'ID de ton dossier Drive ici
 
 async function uploadConfigToDrive() {
@@ -20,7 +16,7 @@ async function uploadConfigToDrive() {
 
   const fileMetadata = {
     name: 'config.json',
-    parents: [DRIVE_FOLDER_ID], // retire cette ligne si tu veux mettre à la racine de Drive
+    parents: [DRIVE_FOLDER_ID],
   };
   const media = {
     mimeType: 'application/json',
@@ -33,14 +29,15 @@ async function uploadConfigToDrive() {
     fields: 'files(id, name)',
   });
 
+  let fileId;
   if (list.data.files.length > 0) {
     // Mise à jour du fichier existant
-    const fileId = list.data.files[0].id;
+    fileId = list.data.files[0].id;
     await drive.files.update({
       fileId,
       media,
     });
-    return fileId;
+    console.log(`[DriveUploader] Fichier mis à jour sur Drive (ID: ${fileId})`);
   } else {
     // Upload d'un nouveau fichier
     const file = await drive.files.create({
@@ -48,8 +45,15 @@ async function uploadConfigToDrive() {
       media,
       fields: 'id',
     });
-    return file.data.id;
+    fileId = file.data.id;
+    console.log(`[DriveUploader] Nouveau fichier uploadé sur Drive (ID: ${fileId})`);
   }
+
+  // Logue la date de modification pour vérification
+  const fileMeta = await drive.files.get({ fileId, fields: 'modifiedTime' });
+  console.log(`[DriveUploader] Dernière modification sur Drive: ${fileMeta.data.modifiedTime}`);
+
+  return fileId;
 }
 
 module.exports = uploadConfigToDrive;
