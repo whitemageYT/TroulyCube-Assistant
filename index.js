@@ -62,25 +62,18 @@ client.once('ready', async () => {
 
 // === Gestion centralisée des interactions ===
 client.on('interactionCreate', async interaction => {
-  // Vérifie que c'est bien une interaction Discord.js
-  if (
-    !interaction ||
-    typeof interaction.isButton !== "function" ||
-    typeof interaction.isChatInputCommand !== "function" ||
-    typeof interaction.isModalSubmit !== "function" ||
-    typeof interaction.reply !== "function"
-  ) {
-    return;
-  }
   try {
-    // Transfère toutes les interactions aux handlers concernés
-    await handleExportConfig(interaction);
+    // Handler export_config : seulement pour les commandes slash
+    if (interaction.isChatInputCommand && interaction.isChatInputCommand()) {
+      await handleExportConfig(interaction);
+    }
+    // Handler villages : pour toutes les interactions (slash, boutons, modals)
     await handleVillageInteractions(interaction); 
     // Ajoutez ici d'autres handlers si nécessaire
   } catch (error) {
     logger.error('Erreur non gérée dans interactionCreate:', error);
-    if (!interaction.replied) {
-      await interaction.reply({ content: "Erreur interne du bot", ephemeral: true });
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({ content: "Erreur interne du bot", flags: 64 });
     }
   }
 });
