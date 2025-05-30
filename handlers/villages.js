@@ -151,20 +151,23 @@ async function handleVillageInteractions(interaction) {
 
     // Modale validée → création du village
     if (interaction.isModalSubmit() && interaction.customId === 'village_modal') {
-    const villageName = interaction.fields.getTextInputValue('village_name').trim().substring(0, 50);
-    let color = interaction.fields.getTextInputValue('village_color').trim();
-    const villageDesc = interaction.fields.getTextInputValue('village_desc').trim().substring(0, 200);
+  const villageName = interaction.fields.getTextInputValue('village_name').trim().substring(0, 50);
+  let color = interaction.fields.getTextInputValue('village_color').trim();
+  const villageDesc = interaction.fields.getTextInputValue('village_desc').trim().substring(0, 200);
 
-    if (!/^#?([0-9A-Fa-f]{6})$/.test(color)) {
-      return interaction.reply({ content: "La couleur doit être au format hexadécimal, ex: #3498db", flags: MessageFlags.Ephemeral });
-    }
-    if (!color.startsWith('#')) color = '#' + color;
+  if (!/^#?([0-9A-Fa-f]{6})$/.test(color)) {
+    return interaction.reply({ content: "La couleur doit être au format hexadécimal, ex: #3498db", flags: MessageFlags.Ephemeral });
+  }
+  if (!color.startsWith('#')) color = '#' + color;
 
-    if (interaction.guild.channels.cache.find(c => c.name.toLowerCase() === villageName.toLowerCase())) {
-      return interaction.reply({ content: "Un village porte déjà ce nom.", flags: MessageFlags.Ephemeral });
-    }
+  if (interaction.guild.channels.cache.find(c => c.name.toLowerCase() === villageName.toLowerCase())) {
+    return interaction.reply({ content: "Un village porte déjà ce nom.", flags: MessageFlags.Ephemeral });
+  }
 
-    try {
+  // DÉFÈRE LA RÉPONSE AVANT TOUT TRAITEMENT LENT
+  await interaction.deferReply({ ephemeral: true });
+
+  try {
       const maireRole = await interaction.guild.roles.create({
         name: `maire de ${villageName}`,
         color: color,
@@ -222,30 +225,27 @@ async function handleVillageInteractions(interaction) {
 
     await interaction.member.roles.add(maireRole);
 
-    if (!config.villages.list) config.villages.list = {};
+     if (!config.villages.list) config.villages.list = {};
     config.villages.list[villageName] = {
       color,
       desc: villageDesc,
       created: new Date().toISOString()
     };
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-
-    // === Upload automatique sur Google Drive ===
     await uploadConfigToDrive();
 
     logger.success(`Village "${villageName}" créé par ${interaction.user.tag} avec couleur ${color}`);
-    await interaction.reply({ content: `Ton village **${villageName}** a été créé avec succès et synchronisé sur Google Drive !`, flags: MessageFlags.Ephemeral });
-
     await updateVillagesEmbed(interaction.client);
+
+    // FIN : on répond à l'utilisateur
+    await interaction.editReply({ content: `Ton village **${villageName}** a été créé avec succès et synchronisé sur Google Drive !` });
+
   } 
-  
-  catch (e) {
-    logger.error("Erreur dans handleVillageInteractions :", e);
-    // Ne replies QUE si ce n'est pas déjà fait (jamais après un showModal réussi)
-    if (!interaction.replied && !interaction.deferred && !interaction.isButton()) {
-      await interaction.reply({ content: "Erreur interne du bot", flags: MessageFlags.Ephemeral });
-    }
+  catch (error) {
+    logger.error(`Erreur lors de la création du village "${villageName}":`, error);
+    await interaction.editReply({ content: "Une erreur est survenue lors de la création du village." });
   }
+  return;
 }
 
 
