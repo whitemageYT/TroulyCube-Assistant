@@ -143,6 +143,7 @@ async function handleVillageInteractions(interaction) {
               .setRequired(true)
           )
         );
+      // IMPORTANT : on ne fait rien d'autre après showModal
       return interaction.showModal(modal);
     }
 
@@ -247,13 +248,11 @@ async function handleVillageInteractions(interaction) {
       const utilisateur = interaction.options.getUser('utilisateur');
       const member = await interaction.guild.members.fetch(utilisateur.id);
 
-      // Vérifie que le village existe
       const villages = config.villages.list || {};
       if (!villages[villageName]) {
         return interaction.reply({ content: "Ce village n'existe pas.", flags: MessageFlags.Ephemeral });
       }
 
-      // Vérifie que l'utilisateur est bien maire de ce village
       const maireRole = interaction.guild.roles.cache.find(r => r.name === `maire de ${villageName}`);
       if (!maireRole || !interaction.member.roles.cache.has(maireRole.id)) {
         return interaction.reply({ content: "Tu n'es pas maire de ce village.", flags: MessageFlags.Ephemeral });
@@ -274,13 +273,11 @@ async function handleVillageInteractions(interaction) {
       const utilisateur = interaction.options.getUser('utilisateur');
       const member = await interaction.guild.members.fetch(utilisateur.id);
 
-      // Vérifie que le village existe
       const villages = config.villages.list || {};
       if (!villages[villageName]) {
         return interaction.reply({ content: "Ce village n'existe pas.", flags: MessageFlags.Ephemeral });
       }
 
-      // Vérifie que l'utilisateur est bien maire de ce village
       const maireRole = interaction.guild.roles.cache.find(r => r.name === `maire de ${villageName}`);
       if (!maireRole || !interaction.member.roles.cache.has(maireRole.id)) {
         return interaction.reply({ content: "Tu n'es pas maire de ce village.", flags: MessageFlags.Ephemeral });
@@ -301,13 +298,11 @@ async function handleVillageInteractions(interaction) {
       const member = interaction.member;
       const guild = interaction.guild;
 
-      // Vérifie que le village existe
       const villages = config.villages.list || {};
       if (!villages[villageName]) {
         return interaction.reply({ content: "Ce village n'existe pas.", flags: MessageFlags.Ephemeral });
       }
 
-      // Vérifie que l'utilisateur est bien maire de ce village
       const maireRole = guild.roles.cache.find(r => r.name === `maire de ${villageName}`);
       if (!maireRole || !member.roles.cache.has(maireRole.id)) {
         return interaction.reply({ content: "Tu n'es pas maire de ce village.", flags: MessageFlags.Ephemeral });
@@ -346,7 +341,12 @@ async function handleVillageInteractions(interaction) {
   } catch (error) {
     logger.error(`[ERROR] Handler interaction :`, error);
     try {
-      if (!interaction.replied && !interaction.deferred && !(interaction.isButton && interaction.isButton())) {
+      // Ne répond que si ce n'est pas déjà fait ET que ce n'était pas un bouton ouvrant une modale
+      if (
+        !interaction.replied &&
+        !interaction.deferred &&
+        !(interaction.isButton && interaction.isButton() && interaction.customId === 'create_village')
+      ) {
         await interaction.reply({ content: "Erreur interne.", flags: MessageFlags.Ephemeral });
       }
     } catch (e) {
