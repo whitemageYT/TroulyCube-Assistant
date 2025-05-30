@@ -1,39 +1,43 @@
+// utils/driveDownloader.js
+const { google } = require('googleapis');
 const fs = require('fs');
-const { MessageFlags } = require('discord.js');
-const downloadConfigFromDrive = require('../utils/driveDownloader');
+const path = require('path');
 
-const ADMIN_ID = '219085766624542721';
+const KEYFILEPATH = './credentials.json';
+const SCOPES = ['https://www.googleapis.com/auth/drive.readonly'];
+const DRIVE_FOLDER_ID = 'TON_ID_DOSSIER_DRIVE';
 
-module.exports = async (interaction) => {
-  if (!interaction.isChatInputCommand() || interaction.commandName !== 'export_config') return;
+async function downloadConfigFromDrive(localPath = './config.json') {
+  const auth = new google.auth.GoogleAuth({
+    keyFile: KEYFILEPATH,
+    scopes: SCOPES,
+  });
+  const drive = google.drive({ version: 'v3', auth });
 
-  if (interaction.user.id !== ADMIN_ID) {
-    // Répond immédiatement et quitte
-    return interaction.reply({ content: "Tu n'es pas autorisé à utiliser cette commande.", flags: MessageFlags.Ephemeral });
-  }
+  // Cherche le fichier config.json dans le dossier
+  const list = await drive.files.list({
+    q: `'${DRIVE_FOLDER_ID}' in parents and name='config.json' and trashed=false`,
+    fields: 'files(id, name)',
+  });
 
-  // Défère la réponse le plus tôt possible
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  if (!list.data.files.length) throw new Error('config.json non trouvé sur Drive');
+  const fileId = list.data.files[0].id;
 
-  try {
-    const path = './config.json';
-    await downloadConfigFromDrive(path);
+  // Télécharge le fichier
+  const dest = fs.createWriteStream(localPath);
+  const res = await drive.files.get(
+    { fileId, alt: 'media' },
+    { responseType: 'stream' }
+  );
 
-    if (!fs.existsSync(path)) {
-      throw new Error("Le fichier config.json n'a pas été trouvé après le téléchargement.");
-    }
+  // On attend le finish du writeStream (et pas seulement le end du stream HTTP)
+  await new Promise((resolve, reject) => {
+    res.data
+      .on('error', reject)
+      .pipe(dest)
+      .on('finish', resolve)
+      .on('error', reject);
+  });
+}
 
-    const fileBuffer = fs.readFileSync(path);
-
-    await interaction.user.send({
-      content: "Voici le fichier config.json à jour :",
-      files: [{ attachment: fileBuffer, name: 'config.json' }]
-    });
-
-    await interaction.editReply({ content: "Fichier envoyé en DM !" });
-  } catch (e) {
-    // Toujours editReply après deferReply
-    await interaction.editReply({ content: "Erreur lors de l'envoi du fichier : " + e.message });
-    console.error(e);
-  }
-};
+module.exports = downloadConfigFromDrive;
