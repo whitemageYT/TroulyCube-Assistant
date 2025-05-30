@@ -25,16 +25,18 @@ async function downloadConfigFromDrive(localPath = './config.json') {
 
   // Télécharge le fichier
   const dest = fs.createWriteStream(localPath);
-  await drive.files.get(
+  const res = await drive.files.get(
     { fileId, alt: 'media' },
     { responseType: 'stream' }
-  ).then(res => {
-    return new Promise((resolve, reject) => {
-      res.data
-        .on('end', resolve)
-        .on('error', reject)
-        .pipe(dest);
-    });
+  );
+
+  // On attend le finish du writeStream (et pas seulement le end du stream HTTP)
+  await new Promise((resolve, reject) => {
+    res.data
+      .on('error', reject)
+      .pipe(dest)
+      .on('finish', resolve)
+      .on('error', reject);
   });
 }
 
