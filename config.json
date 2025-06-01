@@ -22,6 +22,7 @@
       "name": "TroulyCube",
       "ip": "troulycube.net",
       "port": null,
+      "seed": null,
       "channelId": "1372173957700259871",
       "messageId": "1376642483441762337",
       "updateInterval": 300000,
