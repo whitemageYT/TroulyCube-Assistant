@@ -1,4 +1,4 @@
-const fs = require('fs');
+ : const fs = require('fs');
 const config = require('../config.json');
 const configPath = './config.json';
 const { EmbedBuilder } = require('discord.js');
@@ -26,7 +26,7 @@ async function upsertServerStatusMessage(client, server, config) {
   const color = online ? server.embed.colors.online : server.embed.colors.offline;
   const statusText = online ? "🟢 En ligne" : "🔴 Hors ligne";
   const description = online
-    ? `Statut du serveur : **${statusText}**\nIP : \`${server.ip}\`:\`${server.port}\`\n${server.seed}\`\nMOTD : ${motd}`
+    ? `Statut du serveur : **${statusText}**\nIP : \`${server.ip}\`:\`${server.port}\`\nSeed : \`${server.seed}\`\nMOTD : ${motd}`
     : `Statut du serveur : **${statusText}**\nIP : \`${server.ip}\`:\`${server.port}\`\n${server.seed}\`\nLe serveur est hors ligne.`;
 
   const embed = new EmbedBuilder()
