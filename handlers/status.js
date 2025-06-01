@@ -26,8 +26,8 @@ async function upsertServerStatusMessage(client, server, config) {
   const color = online ? server.embed.colors.online : server.embed.colors.offline;
   const statusText = online ? "🟢 En ligne" : "🔴 Hors ligne";
   const description = online
-    ? `Statut du serveur : **${statusText}**\nIP : \`${server.ip}\`:\`${server.port}\`\nMOTD : ${motd}`
-    : `Statut du serveur : **${statusText}**\nIP : \`${server.ip}\`:\`${server.port}\`\nLe serveur est hors ligne.`;
+    ? `Statut du serveur : **${statusText}**\nIP : \`${server.ip}\`:\`${server.port}\`\n${server.seed}\`\nMOTD : ${motd}`
+    : `Statut du serveur : **${statusText}**\nIP : \`${server.ip}\`:\`${server.port}\`\n${server.seed}\`\nLe serveur est hors ligne.`;
 
   const embed = new EmbedBuilder()
     .setTitle(server.embed.title)
