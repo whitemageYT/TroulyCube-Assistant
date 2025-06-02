@@ -163,7 +163,7 @@ async function handleVillageInteractions(interaction) {
         return interaction.reply({ content: "Un village porte déjà ce nom.", flags: MessageFlags.Ephemeral });
       }
 
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
       try {
         // IDs des rôles de référence
