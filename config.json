@@ -69,7 +69,16 @@
     },
     "embedMessageId": "1377703886311260262",
     "list": {
-      
+      "Zone Tsade": {
+        "color": "#000000",
+        "desc": "Installation de la Fondation SCP.\nLa Zone Tsade est un complexe dont la position est secrète. Elle regroupe la totalité des entités hostile de ce monde.",
+        "created": "2025-06-01T22:45:24.314Z"
+      },
+      "Le Dédale": {
+        "color": "#425B8A",
+        "desc": "Les scientifiques de la région ont malencontreusement ouvert un portail Architercturo-dimensionnel. Celui-ci déverse des pluies de bâtiments de toutes époques, que nous utilisons pour bâtir la Cité.",
+        "created": "2025-06-01T23:16:24.047Z"
+      }
     }
   }
 }
