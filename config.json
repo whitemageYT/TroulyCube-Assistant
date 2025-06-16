@@ -21,7 +21,7 @@
     {
       "name": "TroulyCube",
       "ip": "troulycube.craft.gg",
-      "port": "10025",
+      "port": 10025,
       "seed": null,
       "channelId": "1372173957700259871",
       "messageId": "1376642483441762337",
