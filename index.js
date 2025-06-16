@@ -52,13 +52,12 @@ client.once('ready', async () => {
   handleSupprimer(client);
 
   // Statut Minecraft (pour chaque serveur)
-  config.servers.forEach(server => {
+  for (const server of config.servers) {
+  await upsertServerStatusMessage(client, server, config);
+  setInterval(() => {
     upsertServerStatusMessage(client, server, config);
-    setInterval(() => {
-      upsertServerStatusMessage(client, server, config);
-    }, server.updateInterval || 300000);
-  });
-});
+  }, server.updateInterval || 300000);
+}
 
 // === Gestion centralisée des interactions ===
 client.on('interactionCreate', async interaction => {
