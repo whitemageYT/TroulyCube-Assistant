@@ -55,7 +55,11 @@ client.once('ready', async () => {
   for (const server of config.servers) {
   await upsertServerStatusMessage(client, server, config);
   setInterval(() => {
-    upsertServerStatusMessage(client, server, config);
+    try {
+        await upsertServerStatusMessage(client, server, config);
+      } catch (err) {
+        logger.error("Erreur lors de la mise à jour du statut Minecraft :", err);
+      }
   }, server.updateInterval || 300000);
 }
 
