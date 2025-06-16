@@ -52,14 +52,14 @@ client.once('ready', async () => {
   handleSupprimer(client);
 
   // Statut Minecraft (pour chaque serveur)
-  for (const server of config.servers) {
+for (const server of config.servers) {
   await upsertServerStatusMessage(client, server, config);
-  setInterval(() => {
+  setInterval(async () => {
     try {
-        await upsertServerStatusMessage(client, server, config);
-      } catch (err) {
-        logger.error("Erreur lors de la mise à jour du statut Minecraft :", err);
-      }
+      await upsertServerStatusMessage(client, server, config);
+    } catch (err) {
+      logger.error("Erreur lors de la mise à jour du statut Minecraft :", err);
+    }
   }, server.updateInterval || 300000);
 }
 
