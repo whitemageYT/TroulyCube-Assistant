@@ -62,6 +62,7 @@ for (const server of config.servers) {
     }
   }, server.updateInterval || 300000);
 }
+});
 
 // === Gestion centralisée des interactions ===
 client.on('interactionCreate', async interaction => {
