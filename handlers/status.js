@@ -3,10 +3,14 @@ const config = require('../config.json');
 const configPath = './config.json';
 const { EmbedBuilder } = require('discord.js');
 const { status } = require('minecraft-server-util');
+const logger = require('../utils/logger.js');
 
-async function upsertServerStatusMessage(client, server, config) {
-  const channel = await client.channels.fetch(server.channelId);
-  if (!channel) return;
+
+const channel = await client.channels.fetch(server.channelId).catch(err => {
+  logger.error(`Impossible de récupérer le channel ${server.channelId} pour ${server.name}:`, err);
+});
+if (!channel) return;
+
 
   let online = false;
   let playersOnline = 0;
@@ -19,9 +23,10 @@ async function upsertServerStatusMessage(client, server, config) {
     playersOnline = response.players.online;
     maxPlayers = response.players.max;
     motd = response.motd.clean;
-  } catch (err) {
-    online = false;
-  }
+  logger.info(`Statut récupéré pour ${server.name} : ${playersOnline}/${maxPlayers} joueurs`);
+} catch (err) {
+  online = false;
+  logger.error(`Erreur lors du ping du serveur ${server.name} (${server.ip}:${server.port}) :`, err);
 
   const color = online ? server.embed.colors.online : server.embed.colors.offline;
   const statusText = online ? "🟢 En ligne" : "🔴 Hors ligne";
@@ -47,8 +52,10 @@ async function upsertServerStatusMessage(client, server, config) {
 
   if (message && typeof message.edit === 'function') {
     await message.edit({ embeds: [embed] });
+    logger.success(`Embed mis à jour pour ${server.name} (messageId: ${message.id})`);
   } else {
     message = await channel.send({ embeds: [embed] });
+    logger.success(`Nouveau message d'état envoyé pour ${server.name} (messageId: ${message.id})`);
     const servers = config.servers.map(srv => {
       if (srv.channelId === server.channelId) {
         return { ...srv, messageId: message.id };
