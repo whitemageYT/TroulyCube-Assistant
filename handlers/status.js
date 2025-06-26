@@ -33,7 +33,7 @@ const upsertServerStatusMessage = async (client, server, config) => {
   online = false;
   logger.error(`❌ Impossible de pinger ${server.name} (${server.ip}:${server.port})`);
   logger.error(`⛔ ${err.name}: ${err.message}`);
-  logger.debug(err.stack);
+  console.debug(err.stack);
 }
 
 
