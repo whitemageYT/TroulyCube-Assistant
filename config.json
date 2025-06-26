@@ -79,6 +79,11 @@
         "color": "#000000",
         "desc": "Installation de la Fondation SCP.\nLa Zone Tsade est un complexe dont la position est secrète. Elle regroupe la totalité des entités hostile de ce monde.",
         "created": "2025-06-02T00:29:47.958Z"
+      },
+      "La Tribu": {
+        "color": "#642130",
+        "desc": "Village avec les coupaings",
+        "created": "2025-06-21T23:16:24.047Z"
       }
     }
   }
