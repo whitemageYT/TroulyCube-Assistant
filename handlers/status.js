@@ -18,7 +18,7 @@ async function upsertServerStatusMessage(client, server, config) {
 
   try {
     const response = await new Promise((resolve, reject) => {
-  ping({ host: server.ip, port: server.port, timeout: 5000 }, (err, res) => {
+  ping(server.ip, server.port, (err, res) => {
     if (err) return reject(err);
     resolve(res);
   });
