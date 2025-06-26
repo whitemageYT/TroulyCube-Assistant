@@ -72,7 +72,7 @@ async function upsertServerStatusMessage(client, server, config) {
     });
     config.servers = servers;
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-    console.log("Message status envoyé et ID sauvegardé dans config.json.");
+    console.log("✅ Message status envoyé et ID sauvegardé dans config.json.");
   }
 };
 
