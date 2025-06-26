@@ -2,7 +2,7 @@ const fs = require('fs');
 const config = require('../config.json');
 const configPath = './config.json';
 const { EmbedBuilder } = require('discord.js');
-const { ping } = require('mc-ping-updated');
+const ping = require('mc-ping-updated');
 const logger = require('../utils/logger.js');
 
 async function upsertServerStatusMessage(client, server, config) {
