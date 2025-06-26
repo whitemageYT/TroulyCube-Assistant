@@ -26,6 +26,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "googleapis": "^149.0.0",
+    "mc-ping-updated": "^0.1.1",
     "minecraft-server-util": "^5.4.4"
   }
 }

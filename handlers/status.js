@@ -2,18 +2,11 @@ const fs = require('fs');
 const config = require('../config.json');
 const configPath = './config.json';
 const { EmbedBuilder } = require('discord.js');
-const { status } = require('minecraft-server-util');
-const logger = require('../utils/logger.js');
+const mcping = require('mc-ping-updated');
 
-const upsertServerStatusMessage = async (client, server, config) => {
-  // 1. Récupération du channel
-  let channel;
-  try {
-    channel = await client.channels.fetch(server.channelId);
-  } catch (err) {
-    logger.error(`Impossible de récupérer le channel ${server.channelId} pour ${server.name}:`, err);
-    return;
-  }
+async function upsertServerStatusMessage(client, server, config) {
+  const channel = await client.channels.fetch(server.channelId).catch(() => null);
+
   if (!channel) return;
 
   // 2. Récupération du statut du serveur Minecraft
@@ -23,18 +16,21 @@ const upsertServerStatusMessage = async (client, server, config) => {
   let motd = '';
 
   try {
-  const response = await status(server.ip, server.port, { timeout: 5000 });
-  online = true;
-  playersOnline = response.players.online;
-  maxPlayers = response.players.max;
-  motd = response.motd?.clean || response.motd || '';
-  logger.info(`Statut récupéré pour ${server.name} : ${playersOnline}/${maxPlayers} joueurs`);
-} catch (err) {
-  online = false;
-  logger.error(`❌ Impossible de pinger ${server.name} (${server.ip}:${server.port})`);
-  logger.error(`⛔ ${err.name}: ${err.message}`);
-  console.debug(err.stack);
-}
+    const response = await new Promise((resolve, reject) => {
+      mcping.ping({ host: server.ip, port: server.port, timeout: 5000 }, (err, res) => {
+        if (err) return reject(err);
+        resolve(res);
+      });
+    });
+
+    online = true;
+    playersOnline = response.players.online;
+    maxPlayers = response.players.max;
+    motd = response.description?.text || '';
+  } catch (err) {
+    online = false;
+    console.error(`❌ Erreur lors du ping de ${server.name} (${server.ip}:${server.port}):`, err.message);
+  }
 
 
   // 3. Construction de l'embed
@@ -76,7 +72,7 @@ const upsertServerStatusMessage = async (client, server, config) => {
     });
     config.servers = servers;
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-    logger.info("Message status envoyé et ID sauvegardé dans config.json.");
+    console.log("Message status envoyé et ID sauvegardé dans config.json.");
   }
 };
 
