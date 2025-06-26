@@ -23,16 +23,19 @@ const upsertServerStatusMessage = async (client, server, config) => {
   let motd = '';
 
   try {
-    const response = await status(server.ip, server.port, { timeout: 5000 });
-    online = true;
-    playersOnline = response.players.online;
-    maxPlayers = response.players.max;
-    motd = response.motd.clean;
-    logger.info(`Statut récupéré pour ${server.name} : ${playersOnline}/${maxPlayers} joueurs`);
-  } catch (err) {
-    online = false;
-    logger.error(`Erreur lors du ping du serveur ${server.name} (${server.ip}:${server.port}) :`, err);
-  }
+  const response = await status(server.ip, server.port, { timeout: 5000 });
+  online = true;
+  playersOnline = response.players.online;
+  maxPlayers = response.players.max;
+  motd = response.motd?.clean || response.motd || '';
+  logger.info(`Statut récupéré pour ${server.name} : ${playersOnline}/${maxPlayers} joueurs`);
+} catch (err) {
+  online = false;
+  logger.error(`❌ Impossible de pinger ${server.name} (${server.ip}:${server.port})`);
+  logger.error(`⛔ ${err.name}: ${err.message}`);
+  logger.debug(err.stack);
+}
+
 
   // 3. Construction de l'embed
   const color = online ? server.embed.colors.online : server.embed.colors.offline;
