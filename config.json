@@ -84,6 +84,11 @@
         "color": "#642130",
         "desc": "Village avec les coupaings",
         "created": "2025-06-21T23:16:24.047Z"
+      },
+      "Copper Forge": {
+        "color": "#b87333",
+        "desc": "La Grande Forge Naines aux 1001 minerai",
+        "created": "2025-06-02T00:29:47.958Z"
       }
     }
   }
