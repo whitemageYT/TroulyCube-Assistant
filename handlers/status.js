@@ -2,7 +2,8 @@ const fs = require('fs');
 const config = require('../config.json');
 const configPath = './config.json';
 const { EmbedBuilder } = require('discord.js');
-const mcping = require('mc-ping-updated');
+const ping = require('mc-ping-updated');
+const logger = require('../utils/logger.js');
 
 async function upsertServerStatusMessage(client, server, config) {
   const channel = await client.channels.fetch(server.channelId).catch(() => null);
@@ -17,11 +18,12 @@ async function upsertServerStatusMessage(client, server, config) {
 
   try {
     const response = await new Promise((resolve, reject) => {
-      mcping.ping({ host: server.ip, port: server.port, timeout: 5000 }, (err, res) => {
-        if (err) return reject(err);
-        resolve(res);
-      });
-    });
+  ping(server.ip, server.port, (err, res) => {
+    if (err) return reject(err);
+    resolve(res);
+  });
+});
+
 
     online = true;
     playersOnline = response.players.online;

@@ -22,7 +22,7 @@
       "name": "TroulyCube",
       "ip": "troulycube.craft.gg",
       "port": 10025,
-      "seed": null,
+      "seed": "7604352356051094205",
       "channelId": "1372173957700259871",
       "messageId": "1376642483441762337",
       "updateInterval": 300000,
@@ -84,6 +84,11 @@
         "color": "#642130",
         "desc": "Village avec les coupaings",
         "created": "2025-06-21T23:16:24.047Z"
+      },
+      "Copper Forge": {
+        "color": "#b87333",
+        "desc": "La Grande Forge Naines aux 1001 minerai",
+        "created": "2025-06-02T00:29:47.958Z"
       }
     }
   }
